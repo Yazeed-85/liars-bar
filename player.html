@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>شاشة اللاعب</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background-color: #1a1010; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; touch-action: manipulation; padding: 20px;}
+        
+        .status-banner { width: 100%; max-width: 500px; padding: 15px; text-align: center; border-radius: 10px; font-size: 1.3rem; font-weight: bold; background: #333; border: 2px solid #555; margin-bottom: 20px;}
+        .my-turn { background: #064e3b; border-color: #10b981; color: #fff;}
+        .danger { background: #7f1d1d; border-color: #dc2626; color: #fff;}
+
+        /* منطقة الأوراق */
+        .cards-area { flex: 1; width: 100%; max-width: 500px; display: flex; justify-content: center; align-content: center; flex-wrap: wrap; gap: 15px; padding: 10px;}
+        
+        .card { width: 80px; height: 120px; background: #fff; color: #000; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.2s; border: 4px solid transparent;}
+        .card.red-suit { color: #dc2626; }
+        .card.selected { transform: translateY(-15px); border-color: #f59e0b; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.5);}
+        
+        /* أزرار التحكم */
+        .controls { width: 100%; max-width: 500px; display: flex; gap: 10px; padding-bottom: 20px;}
+        .btn { flex: 1; padding: 15px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; color: white; transition: 0.1s;}
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-play { background: #2563eb; }
+        .btn-liar { background: #dc2626; }
+        .btn-shoot { background: #000; border: 2px solid #dc2626; font-size: 1.8rem; display: none;}
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, onDisconnect } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y",
+            authDomain: "buttons-f3501.firebaseapp.com",
+            databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com",
+            projectId: "buttons-f3501"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const pin = urlParams.get('pin');
+        const myName = urlParams.get('name');
+        const myId = "player_" + Date.now();
+
+        const myRef = ref(db, `liars_rooms/${pin}/players/${myId}`);
+        const stateRef = ref(db, `liars_rooms/${pin}/gameState`);
+        const actionsRef = ref(db, `liars_rooms/${pin}/actions`);
+
+        // تسجيل الدخول
+        set(myRef, { name: myName, isAlive: true, hand: [] });
+        onDisconnect(myRef).remove();
+
+        let gameState = {};
+        let myData = {};
+        let selectedCards = [];
+
+        onValue(myRef, (snap) => {
+            if(snap.exists()) {
+                myData = snap.val();
+                renderCards();
+                updateUI();
+            }
+        });
+
+        onValue(stateRef, (snap) => {
+            if(snap.exists()) {
+                gameState = snap.val();
+                updateUI();
+            }
+        });
+
+        window.toggleCard = function(index) {
+            if (gameState.turnId !== myId || gameState.status !== 'playing') return;
+            
+            const cardElement = document.getElementById(`card-${index}`);
+            const cardValue = myData.hand[index];
+
+            if (selectedCards.includes(index)) {
+                selectedCards = selectedCards.filter(i => i !== index);
+                cardElement.classList.remove('selected');
+            } else {
+                selectedCards.push(index);
+                cardElement.classList.add('selected');
+            }
+            updateUI();
+        };
+
+        window.playCards = function() {
+            if (selectedCards.length === 0) return;
+            
+            // سحب الأوراق المحددة
+            const cardsToPlay = selectedCards.map(i => myData.hand[i]);
+            const newHand = myData.hand.filter((_, i) => !selectedCards.includes(i));
+            
+            // إرسال الطلب للسيرفر (الهوست)
+            push(actionsRef, { type: 'play', playerId: myId, cards: cardsToPlay });
+            
+            // تحديث محلي سريع لليد
+            set(ref(db, `liars_rooms/${pin}/players/${myId}/hand`), newHand);
+            selectedCards = [];
+        };
+
+        window.callLiar = function() {
+            if (confirm("هل أنت متأكد؟ إذا كان صادقاً ستموت أنت!")) {
+                push(actionsRef, { type: 'call_liar', playerId: myId });
+            }
+        };
+
+        window.shoot = function() {
+            push(actionsRef, { type: 'shoot', playerId: myId });
+        };
+
+        function renderCards() {
+            const area = document.getElementById('cardsArea');
+            area.innerHTML = '';
+            if (!myData.hand) return;
+
+            myData.hand.forEach((card, index) => {
+                const isRed = card === 'A' || card === 'Q' ? 'red-suit' : '';
+                const isSel = selectedCards.includes(index) ? 'selected' : '';
+                area.innerHTML += `<div id="card-${index}" class="card ${isRed} ${isSel}" onclick="toggleCard(${index})">${card}</div>`;
+            });
+        }
+
+        function updateUI() {
+            const banner = document.getElementById('statusBanner');
+            const playBtn = document.getElementById('playBtn');
+            const liarBtn = document.getElementById('liarBtn');
+            const shootBtn = document.getElementById('shootBtn');
+            const controls = document.getElementById('normalControls');
+
+            if (!myData.isAlive) {
+                banner.innerText = "💀 لقد مت!";
+                banner.className = "status-banner danger";
+                controls.style.display = 'none';
+                shootBtn.style.display = 'none';
+                return;
+            }
+
+            if (gameState.status === 'lobby') {
+                banner.innerText = "في انتظار بدء اللعبة...";
+                banner.className = "status-banner";
+                playBtn.disabled = true; liarBtn.disabled = true;
+                shootBtn.style.display = 'none'; controls.style.display = 'flex';
+            } 
+            else if (gameState.status === 'playing') {
+                shootBtn.style.display = 'none';
+                controls.style.display = 'flex';
+
+                if (gameState.turnId === myId) {
+                    banner.innerText = `🟢 دورك! المطلوب: ${gameState.targetCard}`;
+                    banner.className = "status-banner my-turn";
+                    
+                    playBtn.disabled = selectedCards.length === 0;
+                    // زر كاذب يظهر فقط إذا كان هناك أوراق سابقة على الطاولة
+                    liarBtn.disabled = !(gameState.tableStack && gameState.tableStack.length > 0);
+                } else {
+                    banner.innerText = `انتظر دورك... (المطلوب: ${gameState.targetCard})`;
+                    banner.className = "status-banner";
+                    playBtn.disabled = true; liarBtn.disabled = true;
+                }
+            }
+            else if (gameState.status === 'roulette') {
+                controls.style.display = 'none';
+                if (gameState.victimId === myId) {
+                    banner.innerText = "🚨 أنت الضحية! اسحب الزناد!";
+                    banner.className = "status-banner danger";
+                    shootBtn.style.display = 'block';
+                } else {
+                    banner.innerText = `😱 ${gameState.victimName} سيطلق النار!`;
+                    banner.className = "status-banner";
+                    shootBtn.style.display = 'none';
+                }
+            }
+            else if (gameState.status === 'game_over') {
+                banner.innerText = `🏆 انتهت اللعبة! الفائز: ${gameState.winnerName}`;
+                banner.className = "status-banner";
+                controls.style.display = 'none'; shootBtn.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body>
+    
+    <div class="status-banner" id="statusBanner">جاري الاتصال...</div>
+
+    <div class="cards-area" id="cardsArea">
+        </div>
+
+    <div class="controls" id="normalControls">
+        <button class="btn btn-play" id="playBtn" disabled onclick="playCards()">⬇️ انزل الورق</button>
+        <button class="btn btn-liar" id="liarBtn" disabled onclick="callLiar()">🤥 كاااذب!</button>
+    </div>
+
+    <button class="btn btn-shoot" id="shootBtn" onclick="shoot()">🔫 اسحب الزناد!</button>
+
+</body>
+</html>

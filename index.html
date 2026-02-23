@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Liar's Bar - حانة الكذابين</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #1a1010; color: #eee; display: flex; justify-content: center; align-items: center; height: 100vh; background-image: radial-gradient(circle, #3e1b1b 0%, #110808 100%); touch-action: manipulation;}
+        .container { background: rgba(20, 10, 10, 0.9); padding: 40px; border-radius: 15px; text-align: center; box-shadow: 0 10px 40px rgba(220, 38, 38, 0.2); border: 2px solid #5a2a2a; width: 90%; max-width: 400px; }
+        h1 { color: #dc2626; margin-bottom: 5px; font-size: 2.5rem; text-shadow: 2px 2px 5px #000; font-weight: 900;}
+        p { color: #aaa; margin-bottom: 30px; font-size: 1.1rem;}
+        input { width: 100%; padding: 15px; font-size: 1.2rem; text-align: center; border-radius: 8px; border: 2px solid #5a2a2a; background: #2a1515; color: white; margin-bottom: 15px; outline: none; transition: 0.3s;}
+        input:focus { border-color: #dc2626; box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);}
+        .btn { display: block; width: 100%; padding: 15px; margin-bottom: 15px; border: none; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; color: white; transition: transform 0.1s;}
+        .btn:active { transform: scale(0.95); }
+        .btn-host { background: linear-gradient(135deg, #7f1d1d, #450a0a); border: 1px solid #991b1b;}
+        .btn-player { background: linear-gradient(135deg, #4b5563, #1f2937); border: 1px solid #6b7280;}
+        .divider { border-top: 1px solid #5a2a2a; margin: 20px 0; padding-top: 20px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LIAR'S BAR</h1>
+        <p>اكذب بذكاء، أو واجه الرصاصة 🔫</p>
+        
+        <input type="text" id="playerName" placeholder="أدخل اسمك..." maxlength="12">
+        <button class="btn btn-host" onclick="createRoom()">👑 إنشاء طاولة (هوست)</button>
+        
+        <div class="divider">
+            <input type="number" id="pinInput" placeholder="كود الطاولة (PIN)">
+            <button class="btn btn-player" onclick="joinRoom()">🃏 الجلوس على الطاولة</button>
+        </div>
+    </div>
+
+    <script>
+        function getName() {
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) { alert("يجب كتابة اسمك للجلوس!"); return null; }
+            return name;
+        }
+        function createRoom() {
+            const name = getName();
+            if (!name) return;
+            const pin = Math.floor(1000 + Math.random() * 9000);
+            window.location.href = `host.html?pin=${pin}&name=${encodeURIComponent(name)}`;
+        }
+        function joinRoom() {
+            const name = getName();
+            if (!name) return;
+            const pin = document.getElementById('pinInput').value;
+            if (pin.length === 4) {
+                window.location.href = `player.html?pin=${pin}&name=${encodeURIComponent(name)}`;
+            } else {
+                alert("كود الطاولة يتكون من 4 أرقام!");
+            }
+        }
+    </script>
+</body>
+</html>
