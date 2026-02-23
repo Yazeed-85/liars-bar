@@ -3,44 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طاولة الهوست - Liar's Bar</title>
+    <title>Liar's Bar - طاولة الهوست</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background-color: #1a1010; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px;}
+        body { font-family: sans-serif; background-color: #110808; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px;}
         
         .header { text-align: center; margin-bottom: 20px; }
         .pin-display { font-size: 3rem; font-weight: bold; color: #dc2626; letter-spacing: 5px; background: rgba(0,0,0,0.5); padding: 10px 40px; border-radius: 10px; border: 2px dashed #dc2626; margin: 10px 0;}
         
-        .panel { background: #2a1515; width: 100%; max-width: 800px; padding: 20px; border-radius: 10px; border: 1px solid #5a2a2a; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);}
-        h2 { color: #fca5a5; margin-bottom: 15px; border-bottom: 1px solid #5a2a2a; padding-bottom: 10px;}
+        .panel { background: #1a0a0a; width: 100%; max-width: 900px; padding: 20px; border-radius: 15px; border: 2px solid #3a1a1a; margin-bottom: 20px;}
+        h2 { color: #fca5a5; margin-bottom: 15px; border-bottom: 1px solid #3a1a1a; padding-bottom: 10px;}
         
-        .players-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-        .player-badge { background: #110808; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; border: 2px solid #444; position: relative;}
-        .player-badge.active-turn { border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);}
+        .players-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .player-badge { background: #000; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #333; width: 150px; position: relative;}
+        .player-badge.active-turn { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);}
         .player-badge.dead { opacity: 0.3; text-decoration: line-through; border-color: #dc2626;}
+        .gun-status { font-size: 0.9rem; color: #aaa; margin-top: 5px; background: #222; border-radius: 5px; padding: 3px;}
 
         .btn { background: #dc2626; color: white; border: none; padding: 15px 30px; font-size: 1.3rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s; width: 100%; max-width: 400px;}
         .btn:active { transform: scale(0.95); }
 
-        /* منطقة الطاولة */
-        .table-area { text-align: center; padding: 30px; background: #064e3b; border-radius: 150px; border: 10px solid #78350f; margin: 20px 0; box-shadow: inset 0 0 50px rgba(0,0,0,0.8);}
-        .target-card { font-size: 4rem; font-weight: bold; color: #fff; background: #dc2626; display: inline-block; padding: 10px 30px; border-radius: 10px; margin-bottom: 10px; border: 2px solid #fff;}
-        .table-stack { font-size: 1.5rem; color: #fcd34d; margin-top: 10px;}
+        /* الطاولة الواقعية */
+        .table-area { text-align: center; padding: 40px; background: #064e3b; border-radius: 200px; border: 15px solid #451a03; margin: 20px 0; width: 100%; max-width: 800px; box-shadow: inset 0 0 80px rgba(0,0,0,0.9), 0 15px 30px rgba(0,0,0,0.8); position: relative;}
         
-        .log-box { background: #000; padding: 15px; border-radius: 8px; color: #aaa; height: 150px; overflow-y: auto; text-align: right; font-family: monospace; border: 1px solid #333;}
-        .log-entry { margin-bottom: 5px; border-bottom: 1px dashed #222; padding-bottom: 5px;}
+        .real-card { width: 100px; border-radius: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.6); margin: 0 5px;}
+        .target-section { margin-bottom: 20px; }
+        
+        .log-box { background: #000; padding: 15px; border-radius: 8px; color: #aaa; height: 180px; overflow-y: auto; text-align: right; font-family: monospace; border: 1px solid #333;}
         .log-important { color: #fca5a5; font-weight: bold;}
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, onChildAdded, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y",
-            authDomain: "buttons-f3501.firebaseapp.com",
-            databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com",
-            projectId: "buttons-f3501"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
@@ -48,26 +44,28 @@
         const pin = urlParams.get('pin');
         document.getElementById('pinDisplay').innerText = pin;
         
-        const roomRef = ref(db, `liars_rooms/${pin}`);
-        const playersRef = ref(db, `liars_rooms/${pin}/players`);
         const stateRef = ref(db, `liars_rooms/${pin}/gameState`);
-        const actionsRef = ref(db, `liars_rooms/${pin}/actions`); // صندوق أوامر اللاعبين
+        const playersRef = ref(db, `liars_rooms/${pin}/players`);
+        const actionsRef = ref(db, `liars_rooms/${pin}/actions`);
+
+        // صور الأوراق الحقيقية (من سيرفرات عالمية)
+        const CARD_IMAGES = {
+            'A': 'https://deckofcardsapi.com/static/img/AS.png',
+            'K': 'https://deckofcardsapi.com/static/img/KH.png',
+            'Q': 'https://deckofcardsapi.com/static/img/QD.png',
+            'J': 'https://deckofcardsapi.com/static/img/JC.png',
+            'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
+            'Back': 'https://deckofcardsapi.com/static/img/back.png'
+        };
+        const CARDS = ['A', 'K', 'Q', 'J', 'Joker'];
 
         let players = {};
         let gameState = { status: 'lobby' };
 
-        // تهيئة الغرفة
         set(stateRef, { status: 'lobby' });
 
-        onValue(playersRef, (snap) => {
-            players = snap.val() || {};
-            renderPlayers();
-        });
-
-        onValue(stateRef, (snap) => {
-            gameState = snap.val() || {};
-            updateHostUI();
-        });
+        onValue(playersRef, (snap) => { players = snap.val() || {}; renderPlayers(); });
+        onValue(stateRef, (snap) => { gameState = snap.val() || {}; updateHostUI(); });
 
         function logEvent(msg, isImportant = false) {
             const logBox = document.getElementById('logBox');
@@ -75,24 +73,17 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        // --- العقل المدبر للسيرفر (Host Logic) --- //
-        
-        const CARDS = ['A', 'K', 'Q', 'J', 'Joker'];
-
         window.startGame = async function() {
             const pKeys = Object.keys(players);
             if(pKeys.length < 2) { alert("تحتاج لاعبين على الأقل!"); return; }
 
-            // تجهيز اللاعبين للعبة
             let updates = {};
             pKeys.forEach(id => {
                 updates[`liars_rooms/${pin}/players/${id}/isAlive`] = true;
-                // مخزن المسدس العشوائي (من 0 إلى 5)
-                updates[`liars_rooms/${pin}/players/${id}/bulletIndex`] = Math.floor(Math.random() * 6);
+                updates[`liars_rooms/${pin}/players/${id}/bulletIndex`] = Math.floor(Math.random() * 6); // رصاصة عشوائية من 0 إلى 5
                 updates[`liars_rooms/${pin}/players/${id}/currentChamber`] = 0;
             });
             await update(ref(db), updates);
-            
             startNewRound();
         };
 
@@ -104,27 +95,19 @@
                 return;
             }
 
-            const targetCard = CARDS[Math.floor(Math.random() * 4)]; // بدون الجوكر كهدف
+            const targetCard = CARDS[Math.floor(Math.random() * 4)]; 
             const turnId = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
 
             let updates = {};
-            // توزيع 6 أوراق لكل لاعب حي
             alivePlayers.forEach(id => {
                 let hand = [];
                 for(let i=0; i<6; i++) hand.push(CARDS[Math.floor(Math.random() * CARDS.length)]);
                 updates[`liars_rooms/${pin}/players/${id}/hand`] = hand;
             });
 
-            // إعداد الطاولة
-            updates[`liars_rooms/${pin}/gameState`] = {
-                status: 'playing',
-                targetCard: targetCard,
-                turnId: turnId,
-                tableStack: [],
-                lastPlay: null
-            };
-
+            updates[`liars_rooms/${pin}/gameState`] = { status: 'playing', targetCard: targetCard, turnId: turnId, tableStack: [], lastPlay: null };
             await update(ref(db), updates);
+            
             logEvent(`🃏 جولة جديدة! اللعب على: ${targetCard}`);
             logEvent(`👉 الدور عند: ${players[turnId].name}`);
         }
@@ -135,23 +118,18 @@
             return alive[(idx + 1) % alive.length];
         }
 
-        // الاستماع لأوامر اللاعبين (السيرفر يستقبل الطلبات ويعالجها)
         onChildAdded(actionsRef, async (snap) => {
             const action = snap.val();
             const actionKey = snap.key;
             
             if (action.type === 'play') {
                 const pName = players[action.playerId].name;
-                logEvent(`🃏 ${pName} نزل ${action.cards.length} أوراق.`);
+                logEvent(`🃏 ${pName} وضع ${action.cards.length} أوراق على الطاولة.`);
                 
                 let newStack = gameState.tableStack || [];
                 newStack.push(...action.cards);
 
-                await update(stateRef, {
-                    tableStack: newStack,
-                    lastPlay: { playerId: action.playerId, cards: action.cards },
-                    turnId: getNextTurnId(action.playerId)
-                });
+                await update(stateRef, { tableStack: newStack, lastPlay: { playerId: action.playerId, cards: action.cards }, turnId: getNextTurnId(action.playerId) });
             } 
             else if (action.type === 'call_liar') {
                 const challenger = players[action.playerId].name;
@@ -159,25 +137,17 @@
                 const lastPlayer = players[lastPlayerId].name;
                 const playedCards = gameState.lastPlay.cards;
                 
-                logEvent(`🚨 ${challenger} يقول أن ${lastPlayer} كاذب!`, true);
-                logEvent(`👀 الأوراق الملعوبة كانت: ${playedCards.join(' و ')}`);
-
-                // التحقق هل هو كاذب؟ (الكذاب هو من لعب ورقة ليست الهدف وليست جوكر)
+                logEvent(`🚨 ${challenger} كذّب ${lastPlayer}!`, true);
+                
                 let isLiar = false;
-                playedCards.forEach(c => {
-                    if(c !== gameState.targetCard && c !== 'Joker') isLiar = true;
-                });
+                playedCards.forEach(c => { if(c !== gameState.targetCard && c !== 'Joker') isLiar = true; });
 
                 let victimId = isLiar ? lastPlayerId : action.playerId;
                 let victimName = isLiar ? lastPlayer : challenger;
 
-                logEvent(isLiar ? `💥 كشف الكذبة! ${lastPlayer} يجب أن يطلق النار!` : `❌ اتهام باطل! ${challenger} يجب أن يطلق النار!`, true);
+                logEvent(isLiar ? `💥 كشف الكذبة! الأوراق كانت (${playedCards.join(',')})! ${lastPlayer} سيلعب الروليت!` : `❌ اتهام باطل! الأوراق صحيحة! ${challenger} سيلعب الروليت!`, true);
 
-                await update(stateRef, {
-                    status: 'roulette',
-                    victimId: victimId,
-                    victimName: victimName
-                });
+                await update(stateRef, { status: 'roulette', victimId: victimId, victimName: victimName, revealedCards: playedCards });
             }
             else if (action.type === 'shoot') {
                 const vId = action.playerId;
@@ -192,16 +162,11 @@
                     logEvent(`💨 كليك! نجا ${vData.name} هذه المرة.`);
                     await update(ref(db, `liars_rooms/${pin}/players/${vId}`), { currentChamber: vData.currentChamber + 1 });
                 }
-
-                // بدء جولة جديدة بعد ثانيتين للتشويق
-                setTimeout(() => { startNewRound(); }, 3000);
+                setTimeout(() => { startNewRound(); }, 4000);
             }
-
-            // حذف الطلب بعد تنفيذه
             remove(ref(db, `liars_rooms/${pin}/actions/${actionKey}`));
         });
 
-        // --- تحديث الشاشة --- //
         function renderPlayers() {
             const list = document.getElementById('playersList');
             list.innerHTML = '';
@@ -209,7 +174,13 @@
                 const p = players[id];
                 const isTurn = gameState.turnId === id ? 'active-turn' : '';
                 const isDead = p.isAlive === false ? 'dead' : '';
-                list.innerHTML += `<div class="player-badge ${isTurn} ${isDead}">${p.name}</div>`;
+                const chambers = p.currentChamber !== undefined ? p.currentChamber : 0;
+                
+                list.innerHTML += `
+                    <div class="player-badge ${isTurn} ${isDead}">
+                        <div style="font-size: 1.2rem; margin-bottom:5px;">${p.name}</div>
+                        <div class="gun-status">🔫 طلقات: ${chambers} / 6</div>
+                    </div>`;
             });
         }
 
@@ -225,20 +196,27 @@
             else if (gameState.status === 'playing') {
                 startBtn.style.display = 'none';
                 tableArea.style.display = 'block';
-                document.getElementById('targetCard').innerText = gameState.targetCard;
-                document.getElementById('tableStack').innerText = `عدد الأوراق على الطاولة: ${(gameState.tableStack || []).length}`;
+                
+                document.getElementById('tableContent').innerHTML = `
+                    <div class="target-section">
+                        <div style="color: #ccc; margin-bottom: 10px;">الورقة المطلوبة الآن:</div>
+                        <img src="${CARD_IMAGES[gameState.targetCard]}" class="real-card">
+                    </div>
+                    <div style="color: #fcd34d; font-size: 1.2rem;">عدد الأوراق المقلوبة: ${(gameState.tableStack || []).length}</div>
+                    <img src="${CARD_IMAGES['Back']}" class="real-card" style="transform: rotate(15deg); margin-top:10px;">
+                `;
             }
             else if (gameState.status === 'roulette') {
-                tableArea.style.display = 'block';
-                document.getElementById('targetCard').innerText = "روليت روسي 🔫";
-                document.getElementById('tableStack').innerText = `الضحية: ${gameState.victimName} يمسك المسدس...`;
+                let revealedHTML = gameState.revealedCards ? gameState.revealedCards.map(c => `<img src="${CARD_IMAGES[c]}" class="real-card">`).join('') : '';
+                document.getElementById('tableContent').innerHTML = `
+                    <div style="color: #fca5a5; font-size: 1.5rem; margin-bottom: 10px;">الأوراق المخفية كانت:</div>
+                    <div>${revealedHTML}</div>
+                    <h2 style="color: #dc2626; margin-top:20px; font-size:2rem;">🔫 ${gameState.victimName} يمسك المسدس...</h2>
+                `;
             }
             else if (gameState.status === 'game_over') {
-                tableArea.style.display = 'block';
-                document.getElementById('targetCard').innerText = "🏆 فائز!";
-                document.getElementById('tableStack').innerText = `الفائز هو: ${gameState.winnerName}`;
-                startBtn.style.display = 'block';
-                startBtn.innerText = "بدء لعبة جديدة";
+                document.getElementById('tableContent').innerHTML = `<h1 style="color:#f59e0b; font-size:3rem;">🏆 الفائز هو: ${gameState.winnerName}</h1>`;
+                startBtn.style.display = 'block'; startBtn.innerText = "بدء لعبة جديدة";
             }
         }
     </script>
@@ -247,27 +225,22 @@
     <div class="header">
         <div style="color: #aaa;">كود طاولة الحانة:</div>
         <div class="pin-display" id="pinDisplay">----</div>
-        <div style="color: #ef4444; font-size:0.9rem;">⚠️ لا تغلق هذه الشاشة أبداً أثناء اللعب</div>
     </div>
 
     <div class="panel">
-        <h2>👥 اللاعبين على الطاولة</h2>
+        <h2>👥 الجالسون على الطاولة</h2>
         <div class="players-list" id="playersList"></div>
     </div>
 
     <button id="startBtn" class="btn" onclick="startGame()">🎲 توزيع الورق وبدء اللعب</button>
 
     <div class="table-area" id="tableArea" style="display: none;">
-        <div style="color: #ccc; margin-bottom: 10px;">اللعب الآن على ورقة:</div>
-        <div class="target-card" id="targetCard">K</div>
-        <div class="table-stack" id="tableStack">عدد الأوراق على الطاولة: 0</div>
+        <div id="tableContent"></div>
     </div>
 
     <div class="panel">
         <h2>📜 سجل الأحداث</h2>
-        <div class="log-box" id="logBox">
-            <div class="log-entry">في انتظار بدء اللعبة...</div>
-        </div>
+        <div class="log-box" id="logBox"></div>
     </div>
 </body>
 </html>
