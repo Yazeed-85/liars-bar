@@ -6,44 +6,59 @@
     <title>شاشة اللاعب - Liar's Bar</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background-color: #110808; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; touch-action: manipulation;}
+        body { font-family: sans-serif; background-color: #110808; color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; touch-action: manipulation; }
         
-        /* شريط اللاعبين العلوي (رؤية الطاولة) */
-        .players-bar { width: 100%; display: flex; overflow-x: auto; background: #1a0a0a; padding: 10px; border-bottom: 2px solid #3a1a1a; gap: 10px; align-items: center; white-space: nowrap;}
-        .p-badge { background: #000; padding: 10px; border-radius: 8px; border: 1px solid #333; text-align: center; min-width: 100px;}
-        .p-badge.active { border-color: #f59e0b; box-shadow: 0 0 10px rgba(245,158,11,0.5);}
-        .p-badge.dead { opacity: 0.3; text-decoration: line-through;}
-        .turn-role { font-size: 0.8rem; color: #f59e0b; font-weight: bold; margin-bottom: 3px;}
+        /* شريط الدور الرئيسي في الأعلى */
+        .turn-banner { width: 100%; background: #000; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; border-bottom: 2px solid #333; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.8);}
+        .turn-banner span { color: #f59e0b; font-size: 1.4rem; }
 
-        /* منطقة الطاولة الخضراء المصغرة */
-        .mini-table { width: 100%; flex: 1; background: #064e3b; border-bottom: 5px solid #451a03; border-top: 5px solid #451a03; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); position: relative; padding: 10px;}
-        .target-card-img { width: 80px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-radius: 5px; margin: 10px;}
-        .table-info { text-align: center; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; margin-bottom: 10px;}
-
-        /* منطقة الأوراق (يد اللاعب) */
-        .hand-area { width: 100%; height: 180px; background: #1a0a0a; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 20px; position: relative;}
+        /* منطقة الطاولة العلوية (الورقة المطلوبة واللاعبين) */
+        .top-table-area { flex: 1; background: radial-gradient(circle at top, #064e3b 0%, #022c22 100%); display: flex; flex-direction: column; align-items: center; padding: 15px; position: relative; border-bottom: 5px solid #451a03; box-shadow: inset 0 0 50px rgba(0,0,0,0.8);}
         
-        .real-card { width: 75px; position: absolute; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; box-shadow: -2px 0 10px rgba(0,0,0,0.7); border-radius: 4px; bottom: 10px;}
-        .real-card:active { transform: translateY(-10px); }
-        .real-card.selected { transform: translateY(-30px); outline: 3px solid #f59e0b; z-index: 100 !important; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.6);}
+        /* الورقة المطلوبة مع تأثير النبض */
+        .target-wrapper { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; margin-top: 10px;}
+        .target-title { background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; margin-bottom: 10px; border: 1px solid #333;}
+        .target-card-img { width: 85px; border-radius: 6px; box-shadow: 0 0 20px rgba(252, 211, 77, 0.6); animation: pulse 2s infinite; border: 2px solid #fcd34d;}
+        @keyframes pulse { 0% { box-shadow: 0 0 15px rgba(252, 211, 77, 0.4); } 50% { box-shadow: 0 0 35px rgba(252, 211, 77, 0.9); } 100% { box-shadow: 0 0 15px rgba(252, 211, 77, 0.4); } }
 
-        /* أزرار التحكم */
-        .controls { width: 100%; display: flex; gap: 10px; padding: 15px; background: #000; border-top: 1px solid #333;}
+        /* توزيع الخصوم حول الطاولة */
+        .opponents-ring { display: flex; justify-content: center; gap: 10px; width: 100%; flex-wrap: wrap; margin-bottom: auto;}
+        .opp-badge { background: #1a0a0a; padding: 10px; border-radius: 10px; border: 1px solid #444; text-align: center; min-width: 80px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+        .opp-badge.active-opp { border-color: #f59e0b; background: #381a03; transform: scale(1.05);}
+        .opp-badge.dead-opp { opacity: 0.3; text-decoration: line-through; border-color: #dc2626;}
+        .opp-name { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
+        .opp-gun { font-size: 0.8rem; color: #aaa; }
+        .opp-order { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: #000; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; display: none;}
+        .opp-badge.active-opp .opp-order { display: block; }
+
+        /* معلومات منتصف الطاولة */
+        .table-center-info { font-size: 1.2rem; color: #fcd34d; font-weight: bold; background: rgba(0,0,0,0.7); padding: 8px 20px; border-radius: 20px; margin-bottom: 10px; border: 1px solid #555;}
+
+        /* منطقة يد اللاعب السفلية (الأوراق) */
+        .my-hand-area { background: #110808; padding: 20px 10px; display: flex; justify-content: center; height: 160px; align-items: flex-end;}
+        
+        /* حل مشكلة تداخل الأوراق (التجاوب مع الشاشات) */
+        .real-card { width: 75px; border-radius: 5px; box-shadow: -5px 0 15px rgba(0,0,0,0.8); cursor: pointer; transition: all 0.2s ease-out; margin-left: -35px; position: relative;}
+        .real-card:first-child { margin-left: 0; } /* الورقة الأولى بدون هامش سلبي */
+        .real-card:hover { transform: translateY(-10px); }
+        .real-card.selected { transform: translateY(-25px); outline: 3px solid #f59e0b; z-index: 50; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.6);}
+
+        /* أزرار التحكم السفلية */
+        .controls { display: flex; gap: 10px; padding: 15px; background: #000; border-top: 1px solid #333; z-index: 10;}
         .btn { flex: 1; padding: 15px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; color: white; transition: 0.1s;}
         .btn:active { transform: scale(0.95); }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%);}
-        
         .btn-play { background: #2563eb; }
         .btn-liar { background: #dc2626; }
         
-        /* شاشة الموت والروليت */
-        .overlay-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;}
-        .btn-shoot { background: transparent; border: 3px solid #dc2626; color: #dc2626; padding: 20px 40px; font-size: 2rem; border-radius: 15px; margin-top: 30px; font-weight: bold;}
+        /* شاشات التراكب (الموت، الروليت) */
+        .overlay-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;}
+        .btn-shoot { background: transparent; border: 3px solid #dc2626; color: #dc2626; padding: 20px 40px; font-size: 2rem; border-radius: 15px; margin-top: 30px; font-weight: bold; cursor: pointer;}
         .btn-shoot:active { background: #dc2626; color: white; }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, onDisconnect } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
         const app = initializeApp(firebaseConfig);
@@ -51,26 +66,37 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const pin = urlParams.get('pin');
-        const myName = urlParams.get('name');
-        const myId = "player_" + Date.now();
+        let myName = urlParams.get('name');
+
+        // --- نظام الذاكرة للحفاظ على تقدم اللاعب عند إغلاق الشاشة ---
+        const storageKey = `liars_bar_${pin}_myId`;
+        let myId = localStorage.getItem(storageKey);
+        
+        if (!myId) {
+            myId = "player_" + Date.now();
+            localStorage.setItem(storageKey, myId);
+            // تسجيل لاعب جديد فقط إذا لم يكن موجوداً
+            set(ref(db, `liars_rooms/${pin}/players/${myId}`), { name: myName, isAlive: true, hand: [] });
+        } else {
+            // جلب اسم اللاعب القديم من قاعدة البيانات لو عاد
+            get(ref(db, `liars_rooms/${pin}/players/${myId}/name`)).then((snap) => {
+                if(snap.exists()) myName = snap.val();
+            });
+        }
+        // تمت إزالة onDisconnect لكي لا يموت اللاعب إذا انطفأت شاشته!
 
         const myRef = ref(db, `liars_rooms/${pin}/players/${myId}`);
         const playersRef = ref(db, `liars_rooms/${pin}/players`);
         const stateRef = ref(db, `liars_rooms/${pin}/gameState`);
         const actionsRef = ref(db, `liars_rooms/${pin}/actions`);
 
-        // صور الأوراق الموثوقة
         const CARD_IMAGES = {
             'A': 'https://deckofcardsapi.com/static/img/AS.png',
             'K': 'https://deckofcardsapi.com/static/img/KH.png',
             'Q': 'https://deckofcardsapi.com/static/img/QD.png',
             'J': 'https://deckofcardsapi.com/static/img/JC.png',
-            'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
-            'Back': 'https://deckofcardsapi.com/static/img/back.png'
+            'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png'
         };
-
-        set(myRef, { name: myName, isAlive: true, hand: [] });
-        onDisconnect(myRef).remove();
 
         let gameState = {};
         let allPlayers = {};
@@ -81,7 +107,7 @@
             if(snap.exists()) {
                 allPlayers = snap.val();
                 myData = allPlayers[myId] || {};
-                renderTopBar();
+                renderTable();
                 renderHand();
                 updateUI();
             }
@@ -90,67 +116,60 @@
         onValue(stateRef, (snap) => {
             if(snap.exists()) {
                 gameState = snap.val();
-                renderTopBar();
+                renderTable();
                 updateUI();
             }
         });
 
-        // رسم شريط اللاعبين العلوي لتوضيح الأدوار والمسدسات
-        function renderTopBar() {
-            const bar = document.getElementById('playersBar');
-            bar.innerHTML = '';
+        // ترتيب ورسم الخصوم حول الطاولة
+        function renderTable() {
+            const ring = document.getElementById('opponentsRing');
+            ring.innerHTML = '';
             
-            const aliveKeys = Object.keys(allPlayers).filter(k => allPlayers[k].isAlive);
-            const currIdx = aliveKeys.indexOf(gameState.turnId);
-            const myIdx = aliveKeys.indexOf(myId);
+            const playerKeys = Object.keys(allPlayers);
+            if (playerKeys.length === 0) return;
 
-            Object.keys(allPlayers).forEach(id => {
+            // تحديد ترتيبي في القائمة
+            let myIndex = playerKeys.indexOf(myId);
+            if (myIndex === -1) myIndex = 0;
+
+            // ترتيب المصفوفة لتبدأ من اللاعب الذي بعدي، وتدور حتى اللاعب الذي قبلي
+            const orderedOpponents = playerKeys.slice(myIndex + 1).concat(playerKeys.slice(0, myIndex));
+
+            orderedOpponents.forEach(id => {
                 const p = allPlayers[id];
-                const isDead = p.isAlive === false ? 'dead' : '';
-                const isActive = gameState.turnId === id ? 'active' : '';
+                const isDead = p.isAlive === false ? 'dead-opp' : '';
+                const isActive = gameState.turnId === id ? 'active-opp' : '';
                 const chambers = p.currentChamber !== undefined ? p.currentChamber : 0;
                 
-                let roleText = "";
-                if (gameState.status === 'playing') {
-                    if (id === gameState.turnId) roleText = "يلعب الآن";
-                    else if (p.isAlive) {
-                        const targetIdx = aliveKeys.indexOf(id);
-                        if (targetIdx === (currIdx + 1) % aliveKeys.length) roleText = "التالي";
-                        if (targetIdx === (currIdx - 1 + aliveKeys.length) % aliveKeys.length) roleText = "السابق";
-                    }
-                }
+                let tag = "";
+                if(isActive) tag = "<div class='opp-order'>يلعب الآن</div>";
 
-                bar.innerHTML += `
-                    <div class="p-badge ${isActive} ${isDead}">
-                        <div class="turn-role">${roleText}</div>
-                        <div>${id === myId ? '(أنت) ' + p.name : p.name}</div>
-                        <div style="font-size: 0.8rem; color:#888;">🔫 ${chambers}/6</div>
+                ring.innerHTML += `
+                    <div class="opp-badge ${isActive} ${isDead}">
+                        ${tag}
+                        <div class="opp-name">${p.name}</div>
+                        <div class="opp-gun">🔫 ${chambers}/6</div>
                     </div>
                 `;
             });
         }
 
-        // رسم الأوراق الحقيقية بشكل متداخل (Fan shape)
+        // رسم أوراقي في الأسفل (متجاوبة Flexbox)
         function renderHand() {
-            const area = document.getElementById('handArea');
+            const area = document.getElementById('myHandArea');
             area.innerHTML = '';
             if (!myData.hand) return;
-
-            const total = myData.hand.length;
-            const offset = 40; // مسافة التداخل بين كل ورقة
 
             myData.hand.forEach((card, index) => {
                 const isSel = selectedCards.includes(index) ? 'selected' : '';
                 const imgSrc = CARD_IMAGES[card];
                 
-                // حساب موقع الورقة لتظهر في المنتصف متداخلة
-                const startLeft = `calc(50% - ${(total * offset)/2}px + ${index * offset}px)`;
-
                 area.innerHTML += `
                     <img src="${imgSrc}" 
                          id="card-${index}" 
                          class="real-card ${isSel}" 
-                         style="left: ${startLeft}; z-index: ${index};"
+                         style="z-index: ${index};"
                          onclick="toggleCard(${index})">
                 `;
             });
@@ -164,7 +183,7 @@
             } else {
                 selectedCards.push(index);
             }
-            renderHand(); // إعادة الرسم لتحديث الـ CSS
+            renderHand(); 
             updateUI();
         };
 
@@ -179,85 +198,101 @@
         };
 
         window.callLiar = function() {
-            if (confirm("هل أنت متأكد؟ إذا كان الذي قبلك صادقاً، ستمسك أنت المسدس!")) {
+            if (confirm("هل أنت متأكد؟ إذا كان صادقاً، ستتلقى أنت الرصاصة!")) {
                 push(actionsRef, { type: 'call_liar', playerId: myId });
             }
         };
 
         window.shoot = function() {
-            document.getElementById('shootBtn').style.display = 'none'; // إخفاء الزر لمنع الضغط المزدوج
+            document.getElementById('shootBtn').style.display = 'none'; 
             push(actionsRef, { type: 'shoot', playerId: myId });
         };
 
         function updateUI() {
-            const tableContent = document.getElementById('tableContent');
+            const turnBanner = document.getElementById('turnBanner');
+            const targetContainer = document.getElementById('targetContainer');
+            const tableCenterInfo = document.getElementById('tableCenterInfo');
+            
             const playBtn = document.getElementById('playBtn');
             const liarBtn = document.getElementById('liarBtn');
+            
             const overlay = document.getElementById('overlayScreen');
             const overlayText = document.getElementById('overlayText');
             const shootBtn = document.getElementById('shootBtn');
 
             if (!myData.isAlive) {
                 overlay.style.display = 'flex';
-                overlayText.innerHTML = "<h1 style='color:#ef4444; font-size:4rem;'>💀</h1><h2>لقد مت!</h2><p>شاهد البقية وهم يتساقطون...</p>";
+                overlayText.innerHTML = "<h1 style='color:#ef4444; font-size:4rem;'>💀</h1><h2>لقد مت!</h2><p style='color:#aaa; margin-top:10px;'>راقب أصدقاءك وهم يتساقطون...</p>";
                 shootBtn.style.display = 'none';
                 return;
             }
 
             if (gameState.status === 'lobby') {
                 overlay.style.display = 'flex';
-                overlayText.innerHTML = "<h2>🍻 حانة الكذابين</h2><p>في انتظار الهوست لبدء اللعبة...</p>";
+                overlayText.innerHTML = "<h2>🍻 حانة الكذابين</h2><p style='color:#aaa; margin-top:10px;'>انتظر الهوست لتوزيع الورق...</p>";
                 shootBtn.style.display = 'none';
             } 
             else if (gameState.status === 'playing') {
                 overlay.style.display = 'none';
                 
-                // تحديث الطاولة المصغرة
-                const stackCount = (gameState.tableStack || []).length;
-                tableContent.innerHTML = `
-                    <div class="table-info">الورقة المطلوبة للعب:</div>
+                // تحديث الورقة المطلوبة في الأعلى
+                targetContainer.innerHTML = `
+                    <div class="target-title">الورقة المطلوبة للعب:</div>
                     <img src="${CARD_IMAGES[gameState.targetCard]}" class="target-card-img">
-                    <div style="color: #fcd34d; font-weight: bold; font-size:1.1rem;">أوراق على الطاولة: ${stackCount}</div>
                 `;
+                
+                // عدد الأوراق المقلوبة
+                const stackCount = (gameState.tableStack || []).length;
+                tableCenterInfo.innerText = `أوراق على الطاولة: ${stackCount}`;
 
-                // تفعيل الأزرار إذا كان دوري
+                // تحديد من يلعب
                 if (gameState.turnId === myId) {
+                    turnBanner.innerHTML = `دورك الآن يا <span>${myName}</span>!`;
+                    turnBanner.style.borderBottomColor = '#10b981';
+                    
                     playBtn.disabled = selectedCards.length === 0;
-                    liarBtn.disabled = stackCount === 0; // لا يمكنك تكذيب شخص إذا كانت الطاولة فارغة
-                    document.body.style.boxShadow = "inset 0 0 30px rgba(16, 185, 129, 0.5)"; // إضاءة خضراء لدوري
+                    liarBtn.disabled = stackCount === 0; 
                 } else {
+                    const activePlayerName = allPlayers[gameState.turnId] ? allPlayers[gameState.turnId].name : 'شخص آخر';
+                    turnBanner.innerHTML = `اللعب الآن عند: <span>${activePlayerName}</span>`;
+                    turnBanner.style.borderBottomColor = '#333';
+                    
                     playBtn.disabled = true; 
                     liarBtn.disabled = true;
-                    document.body.style.boxShadow = "none";
                 }
             }
             else if (gameState.status === 'roulette') {
                 overlay.style.display = 'flex';
                 if (gameState.victimId === myId) {
-                    overlayText.innerHTML = "<h1 style='color:#ef4444;'>🚨 أنت الضحية!</h1><p>اسحب الزناد وادعُ أن يكون المخزن فارغاً...</p>";
+                    overlayText.innerHTML = "<h1 style='color:#ef4444; font-size:3rem;'>🚨 أنت الضحية!</h1><p style='font-size:1.2rem; margin-top:10px;'>أمسك المسدس واسحب الزناد...</p>";
                     shootBtn.style.display = 'block';
                 } else {
-                    overlayText.innerHTML = `<h2>😱 روليت الموت</h2><p>${gameState.victimName} يمسك المسدس الآن...</p>`;
+                    overlayText.innerHTML = `<h2>😱 روليت الموت</h2><p style='color:#aaa; margin-top:10px; font-size:1.2rem;'>${gameState.victimName} يمسك المسدس ويده ترتجف...</p>`;
                     shootBtn.style.display = 'none';
                 }
             }
             else if (gameState.status === 'game_over') {
                 overlay.style.display = 'flex';
-                overlayText.innerHTML = `<h1>🏆 انتهت اللعبة!</h1><h2>الناجي الأخير: ${gameState.winnerName}</h2>`;
+                overlayText.innerHTML = `<h1 style='font-size:4rem;'>🏆</h1><h2 style='color:#fcd34d;'>انتهت اللعبة!</h2><p style='font-size:1.2rem; margin-top:10px;'>الناجي الأخير هو: ${gameState.winnerName}</p>`;
                 shootBtn.style.display = 'none';
             }
         }
     </script>
 </head>
 <body>
-    
-    <div class="players-bar" id="playersBar"></div>
 
-    <div class="mini-table">
-        <div id="tableContent" style="text-align: center;">جاري الاتصال بالطاولة...</div>
+    <div class="turn-banner" id="turnBanner">جاري الاتصال...</div>
+
+    <div class="top-table-area">
+        
+        <div class="target-wrapper" id="targetContainer"></div>
+
+        <div class="opponents-ring" id="opponentsRing"></div>
+        
+        <div class="table-center-info" id="tableCenterInfo">أوراق على الطاولة: 0</div>
     </div>
 
-    <div class="hand-area" id="handArea"></div>
+    <div class="my-hand-area" id="myHandArea"></div>
 
     <div class="controls">
         <button class="btn btn-play" id="playBtn" disabled onclick="playCards()">⬇️ انزل الورق</button>
