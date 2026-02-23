@@ -3,47 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>بطاقة اللاعب</title>
+    <title>شاشة اللاعب - Liar's Bar</title>
     <style>
-        body { font-family: sans-serif; background-color: #111; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; overflow: hidden; padding-top: 20px;}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: sans-serif; background-color: #110808; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; touch-action: manipulation;}
         
-        .lobby-screen { width: 90%; max-width: 500px; text-align: center; }
-        .lobby-title { color: #aaa; font-size: 1.2rem; margin-bottom: 20px; }
-        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 20px;}
-        .player-badge { background: #1a1a1a; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; border: 1px solid #333;}
-        .me-badge { border-color: #dc2626; color: #fca5a5; box-shadow: 0 0 10px rgba(220,38,38,0.2);}
+        /* شريط اللاعبين العلوي (رؤية الطاولة) */
+        .players-bar { width: 100%; display: flex; overflow-x: auto; background: #1a0a0a; padding: 10px; border-bottom: 2px solid #3a1a1a; gap: 10px; align-items: center; white-space: nowrap;}
+        .p-badge { background: #000; padding: 10px; border-radius: 8px; border: 1px solid #333; text-align: center; min-width: 100px;}
+        .p-badge.active { border-color: #f59e0b; box-shadow: 0 0 10px rgba(245,158,11,0.5);}
+        .p-badge.dead { opacity: 0.3; text-decoration: line-through;}
+        .turn-role { font-size: 0.8rem; color: #f59e0b; font-weight: bold; margin-bottom: 3px;}
 
-        .game-screen { display: none; width: 100%; flex-direction: column; align-items: center; }
-        .judge-banner { background: #1a1a1a; border-bottom: 2px solid #f59e0b; color: #fde68a; width: 100%; padding: 15px; text-align: center; font-weight: bold; font-size: 1.2rem; margin-bottom: 40px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);}
-        
-        .instruction { color: #888; margin-bottom: 20px; font-size: 1.1rem; text-align: center;}
+        /* منطقة الطاولة الخضراء المصغرة */
+        .mini-table { width: 100%; flex: 1; background: #064e3b; border-bottom: 5px solid #451a03; border-top: 5px solid #451a03; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); position: relative; padding: 10px;}
+        .target-card-img { width: 80px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-radius: 5px; margin: 10px;}
+        .table-info { text-align: center; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 10px; margin-bottom: 10px;}
 
-        #judgeView { display: none; width: 90%; max-width: 400px; background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%); border: 2px solid #f59e0b; border-radius: 20px; padding: 40px 20px; text-align: center; box-shadow: 0 0 40px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(245, 158, 11, 0.05); margin-top: 20px; }
-        .judge-title { font-size: 2.5rem; font-weight: 900; color: #fcd34d; margin-bottom: 10px; text-shadow: 0 0 15px rgba(252, 211, 77, 0.5);}
-        .judge-desc { color: #fde68a; font-size: 1.2rem; line-height: 1.6; }
+        /* منطقة الأوراق (يد اللاعب) */
+        .hand-area { width: 100%; height: 180px; background: #1a0a0a; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 20px; position: relative;}
+        
+        .real-card { width: 75px; position: absolute; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; box-shadow: -2px 0 10px rgba(0,0,0,0.7); border-radius: 4px; bottom: 10px;}
+        .real-card:active { transform: translateY(-10px); }
+        .real-card.selected { transform: translateY(-30px); outline: 3px solid #f59e0b; z-index: 100 !important; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.6);}
 
-        #cardContainer { display: none; width: 250px; height: 350px; perspective: 1000px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
-        .card-inner.flipped { transform: rotateY(180deg); }
-        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px solid #333; }
+        /* أزرار التحكم */
+        .controls { width: 100%; display: flex; gap: 10px; padding: 15px; background: #000; border-top: 1px solid #333;}
+        .btn { flex: 1; padding: 15px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; color: white; transition: 0.1s;}
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%);}
         
-        .card-front { background: repeating-linear-gradient(45deg, #151515, #151515 10px, #1a1a1a 10px, #1a1a1a 20px); color: #444; font-size: 6rem; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-shadow: 0 0 20px rgba(0,0,0,1);}
-        .card-back { background: radial-gradient(circle at center, #222 0%, #0a0a0a 100%); transform: rotateY(180deg); padding: 20px; box-sizing: border-box; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+        .btn-play { background: #2563eb; }
+        .btn-liar { background: #dc2626; }
         
-        .role-title { font-size: 3rem; font-weight: 900; margin: 10px 0;}
-        .role-desc { font-size: 1.1rem; color: #ccc; margin-top: 10px;}
+        /* شاشة الموت والروليت */
+        .overlay-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;}
+        .btn-shoot { background: transparent; border: 3px solid #dc2626; color: #dc2626; padding: 20px 40px; font-size: 2rem; border-radius: 15px; margin-top: 30px; font-weight: bold;}
+        .btn-shoot:active { background: #dc2626; color: white; }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, onDisconnect, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, onDisconnect } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y",
-            authDomain: "buttons-f3501.firebaseapp.com",
-            databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com",
-            projectId: "buttons-f3501"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
@@ -52,162 +54,219 @@
         const myName = urlParams.get('name');
         const myId = "player_" + Date.now();
 
-        const myRef = ref(db, `mafia_rooms/${pin}/players/${myId}`);
-        const playersRef = ref(db, `mafia_rooms/${pin}/players`);
-        const settingsRef = ref(db, `mafia_rooms/${pin}/settings`);
+        const myRef = ref(db, `liars_rooms/${pin}/players/${myId}`);
+        const playersRef = ref(db, `liars_rooms/${pin}/players`);
+        const stateRef = ref(db, `liars_rooms/${pin}/gameState`);
+        const actionsRef = ref(db, `liars_rooms/${pin}/actions`);
 
-        set(myRef, { name: myName, role: '', isHost: false });
-        onDisconnect(myRef).remove(); // إزالة اللاعب نفسه إذا خرج لا تضر اللعبة
+        // صور الأوراق الموثوقة
+        const CARD_IMAGES = {
+            'A': 'https://deckofcardsapi.com/static/img/AS.png',
+            'K': 'https://deckofcardsapi.com/static/img/KH.png',
+            'Q': 'https://deckofcardsapi.com/static/img/QD.png',
+            'J': 'https://deckofcardsapi.com/static/img/JC.png',
+            'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
+            'Back': 'https://deckofcardsapi.com/static/img/back.png'
+        };
 
-        // حفظ الوقت باليوم والتاريخ
-        const options = { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', minute: 'numeric' };
-        const formattedDate = new Intl.DateTimeFormat('ar-SA', options).format(new Date());
+        set(myRef, { name: myName, isAlive: true, hand: [] });
+        onDisconnect(myRef).remove();
 
-        const logsRef = ref(db, `mafia_logs/players`);
-        push(logsRef, {
-            name: myName + " (لاعب)",
-            room: pin,
-            time: formattedDate,
-            timestamp: Date.now()
-        });
+        let gameState = {};
+        let allPlayers = {};
+        let myData = {};
+        let selectedCards = [];
 
-        onValue(playersRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const playersData = snapshot.val();
-                const grid = document.getElementById('lobbyGrid');
-                grid.innerHTML = '';
-                Object.keys(playersData).forEach(key => {
-                    const p = playersData[key];
-                    const isMe = key === myId;
-                    grid.innerHTML += `<div class="player-badge ${isMe ? 'me-badge' : ''}">${p.name}</div>`;
-                });
+        onValue(playersRef, (snap) => {
+            if(snap.exists()) {
+                allPlayers = snap.val();
+                myData = allPlayers[myId] || {};
+                renderTopBar();
+                renderHand();
+                updateUI();
             }
         });
 
-        onValue(settingsRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const settings = snapshot.val();
-                if (settings.status === 'distributed') {
-                    document.getElementById('lobbyScreen').style.display = 'none';
-                    document.getElementById('gameScreen').style.display = 'flex';
-                    document.getElementById('judgeName').innerText = settings.judgeName;
-                    
-                    // استدعاء المراقبة المستمرة للدور
-                    checkMyRole();
-                } else {
-                    document.getElementById('lobbyScreen').style.display = 'block';
-                    document.getElementById('gameScreen').style.display = 'none';
-                }
-            } else {
-                document.getElementById('lobbyTitle').innerText = "تم إغلاق الغرفة.";
+        onValue(stateRef, (snap) => {
+            if(snap.exists()) {
+                gameState = snap.val();
+                renderTopBar();
+                updateUI();
             }
         });
 
-        // تم إصلاح كود القراءة ليكون مستمراً ولا يقرأ فراغاً أبداً
-        function checkMyRole() {
-            onValue(myRef, (snap) => {
-                if (snap.exists()) {
-                    const data = snap.val();
-                    if (data.role && data.role !== '') {
-                        setupRoleView(data.role);
+        // رسم شريط اللاعبين العلوي لتوضيح الأدوار والمسدسات
+        function renderTopBar() {
+            const bar = document.getElementById('playersBar');
+            bar.innerHTML = '';
+            
+            const aliveKeys = Object.keys(allPlayers).filter(k => allPlayers[k].isAlive);
+            const currIdx = aliveKeys.indexOf(gameState.turnId);
+            const myIdx = aliveKeys.indexOf(myId);
+
+            Object.keys(allPlayers).forEach(id => {
+                const p = allPlayers[id];
+                const isDead = p.isAlive === false ? 'dead' : '';
+                const isActive = gameState.turnId === id ? 'active' : '';
+                const chambers = p.currentChamber !== undefined ? p.currentChamber : 0;
+                
+                let roleText = "";
+                if (gameState.status === 'playing') {
+                    if (id === gameState.turnId) roleText = "يلعب الآن";
+                    else if (p.isAlive) {
+                        const targetIdx = aliveKeys.indexOf(id);
+                        if (targetIdx === (currIdx + 1) % aliveKeys.length) roleText = "التالي";
+                        if (targetIdx === (currIdx - 1 + aliveKeys.length) % aliveKeys.length) roleText = "السابق";
                     }
                 }
-            }); // تم إزالة onlyOnce
+
+                bar.innerHTML += `
+                    <div class="p-badge ${isActive} ${isDead}">
+                        <div class="turn-role">${roleText}</div>
+                        <div>${id === myId ? '(أنت) ' + p.name : p.name}</div>
+                        <div style="font-size: 0.8rem; color:#888;">🔫 ${chambers}/6</div>
+                    </div>
+                `;
+            });
         }
 
-        function setupRoleView(role) {
-            const judgeView = document.getElementById('judgeView');
-            const cardContainer = document.getElementById('cardContainer');
-            const instructions = document.getElementById('instructionText');
+        // رسم الأوراق الحقيقية بشكل متداخل (Fan shape)
+        function renderHand() {
+            const area = document.getElementById('handArea');
+            area.innerHTML = '';
+            if (!myData.hand) return;
 
-            if (role === 'القاضي') {
-                cardContainer.style.display = 'none';
-                instructions.style.display = 'none';
-                judgeView.style.display = 'block';
-            } else {
-                judgeView.style.display = 'none';
-                cardContainer.style.display = 'block';
-                instructions.style.display = 'block';
-                setupCardColors(role);
-            }
+            const total = myData.hand.length;
+            const offset = 40; // مسافة التداخل بين كل ورقة
+
+            myData.hand.forEach((card, index) => {
+                const isSel = selectedCards.includes(index) ? 'selected' : '';
+                const imgSrc = CARD_IMAGES[card];
+                
+                // حساب موقع الورقة لتظهر في المنتصف متداخلة
+                const startLeft = `calc(50% - ${(total * offset)/2}px + ${index * offset}px)`;
+
+                area.innerHTML += `
+                    <img src="${imgSrc}" 
+                         id="card-${index}" 
+                         class="real-card ${isSel}" 
+                         style="left: ${startLeft}; z-index: ${index};"
+                         onclick="toggleCard(${index})">
+                `;
+            });
         }
 
-        function setupCardColors(role) {
-            const cardBack = document.getElementById('cardBack');
-            const title = document.getElementById('roleTitle');
-            const desc = document.getElementById('roleDesc');
+        window.toggleCard = function(index) {
+            if (gameState.turnId !== myId || gameState.status !== 'playing') return;
             
-            title.innerText = role;
-
-            if (role === 'مافيا') {
-                cardBack.style.borderColor = '#dc2626';
-                cardBack.style.boxShadow = '0 0 40px rgba(220, 38, 38, 0.25), inset 0 0 20px rgba(220, 38, 38, 0.15)';
-                title.style.color = '#ef4444';
-                title.style.textShadow = '0 0 15px rgba(239, 68, 68, 0.5)';
-                desc.innerText = "اقتل المواطنين في الليل، واكذب في النهار!";
-            } else if (role === 'دكتور') {
-                cardBack.style.borderColor = '#10b981';
-                cardBack.style.boxShadow = '0 0 40px rgba(16, 185, 129, 0.25), inset 0 0 20px rgba(16, 185, 129, 0.15)';
-                title.style.color = '#34d399';
-                title.style.textShadow = '0 0 15px rgba(52, 211, 153, 0.5)';
-                desc.innerText = "أنقذ شخصاً واحداً كل ليلة.";
-            } else if (role === 'محقق') {
-                cardBack.style.borderColor = '#3b82f6';
-                cardBack.style.boxShadow = '0 0 40px rgba(59, 130, 246, 0.25), inset 0 0 20px rgba(59, 130, 246, 0.15)';
-                title.style.color = '#93c5fd';
-                title.style.textShadow = '0 0 15px rgba(147, 197, 253, 0.5)';
-                desc.innerText = "اسأل القاضي ليلاً عن هوية شخص واحد.";
+            if (selectedCards.includes(index)) {
+                selectedCards = selectedCards.filter(i => i !== index);
             } else {
-                cardBack.style.borderColor = '#9ca3af';
-                cardBack.style.boxShadow = '0 0 40px rgba(156, 163, 175, 0.15), inset 0 0 20px rgba(156, 163, 175, 0.1)';
-                title.style.color = '#f3f4f6';
-                title.style.textShadow = '0 0 15px rgba(243, 244, 246, 0.3)';
-                desc.innerText = "مواطن شريف. راقب، وصوت لطرد المافيا.";
+                selectedCards.push(index);
+            }
+            renderHand(); // إعادة الرسم لتحديث الـ CSS
+            updateUI();
+        };
+
+        window.playCards = function() {
+            if (selectedCards.length === 0) return;
+            const cardsToPlay = selectedCards.map(i => myData.hand[i]);
+            const newHand = myData.hand.filter((_, i) => !selectedCards.includes(i));
+            
+            push(actionsRef, { type: 'play', playerId: myId, cards: cardsToPlay });
+            set(ref(db, `liars_rooms/${pin}/players/${myId}/hand`), newHand);
+            selectedCards = [];
+        };
+
+        window.callLiar = function() {
+            if (confirm("هل أنت متأكد؟ إذا كان الذي قبلك صادقاً، ستمسك أنت المسدس!")) {
+                push(actionsRef, { type: 'call_liar', playerId: myId });
+            }
+        };
+
+        window.shoot = function() {
+            document.getElementById('shootBtn').style.display = 'none'; // إخفاء الزر لمنع الضغط المزدوج
+            push(actionsRef, { type: 'shoot', playerId: myId });
+        };
+
+        function updateUI() {
+            const tableContent = document.getElementById('tableContent');
+            const playBtn = document.getElementById('playBtn');
+            const liarBtn = document.getElementById('liarBtn');
+            const overlay = document.getElementById('overlayScreen');
+            const overlayText = document.getElementById('overlayText');
+            const shootBtn = document.getElementById('shootBtn');
+
+            if (!myData.isAlive) {
+                overlay.style.display = 'flex';
+                overlayText.innerHTML = "<h1 style='color:#ef4444; font-size:4rem;'>💀</h1><h2>لقد مت!</h2><p>شاهد البقية وهم يتساقطون...</p>";
+                shootBtn.style.display = 'none';
+                return;
+            }
+
+            if (gameState.status === 'lobby') {
+                overlay.style.display = 'flex';
+                overlayText.innerHTML = "<h2>🍻 حانة الكذابين</h2><p>في انتظار الهوست لبدء اللعبة...</p>";
+                shootBtn.style.display = 'none';
+            } 
+            else if (gameState.status === 'playing') {
+                overlay.style.display = 'none';
+                
+                // تحديث الطاولة المصغرة
+                const stackCount = (gameState.tableStack || []).length;
+                tableContent.innerHTML = `
+                    <div class="table-info">الورقة المطلوبة للعب:</div>
+                    <img src="${CARD_IMAGES[gameState.targetCard]}" class="target-card-img">
+                    <div style="color: #fcd34d; font-weight: bold; font-size:1.1rem;">أوراق على الطاولة: ${stackCount}</div>
+                `;
+
+                // تفعيل الأزرار إذا كان دوري
+                if (gameState.turnId === myId) {
+                    playBtn.disabled = selectedCards.length === 0;
+                    liarBtn.disabled = stackCount === 0; // لا يمكنك تكذيب شخص إذا كانت الطاولة فارغة
+                    document.body.style.boxShadow = "inset 0 0 30px rgba(16, 185, 129, 0.5)"; // إضاءة خضراء لدوري
+                } else {
+                    playBtn.disabled = true; 
+                    liarBtn.disabled = true;
+                    document.body.style.boxShadow = "none";
+                }
+            }
+            else if (gameState.status === 'roulette') {
+                overlay.style.display = 'flex';
+                if (gameState.victimId === myId) {
+                    overlayText.innerHTML = "<h1 style='color:#ef4444;'>🚨 أنت الضحية!</h1><p>اسحب الزناد وادعُ أن يكون المخزن فارغاً...</p>";
+                    shootBtn.style.display = 'block';
+                } else {
+                    overlayText.innerHTML = `<h2>😱 روليت الموت</h2><p>${gameState.victimName} يمسك المسدس الآن...</p>`;
+                    shootBtn.style.display = 'none';
+                }
+            }
+            else if (gameState.status === 'game_over') {
+                overlay.style.display = 'flex';
+                overlayText.innerHTML = `<h1>🏆 انتهت اللعبة!</h1><h2>الناجي الأخير: ${gameState.winnerName}</h2>`;
+                shootBtn.style.display = 'none';
             }
         }
-
-        const cardInner = document.getElementById('cardInner');
-        const container = document.getElementById('cardContainer');
-        const revealCard = (e) => { e.preventDefault(); cardInner.classList.add('flipped'); };
-        const hideCard = (e) => { e.preventDefault(); cardInner.classList.remove('flipped'); };
-
-        container.addEventListener('mousedown', revealCard);
-        container.addEventListener('mouseup', hideCard);
-        container.addEventListener('mouseleave', hideCard); 
-        container.addEventListener('touchstart', revealCard, {passive: false});
-        container.addEventListener('touchend', hideCard);
-        container.addEventListener('touchcancel', hideCard);
-
     </script>
 </head>
 <body>
     
-    <div class="lobby-screen" id="lobbyScreen">
-        <h2 class="lobby-title" id="lobbyTitle">في انتظار الهوست ليبدأ اللعبة...</h2>
-        <div style="color:#555;">اللاعبون المنضمون:</div>
-        <div class="players-grid" id="lobbyGrid"></div>
+    <div class="players-bar" id="playersBar"></div>
+
+    <div class="mini-table">
+        <div id="tableContent" style="text-align: center;">جاري الاتصال بالطاولة...</div>
     </div>
 
-    <div class="game-screen" id="gameScreen">
-        <div class="judge-banner">⚖️ القاضي لهذه الجولة: <span id="judgeName"></span></div>
-        
-        <div class="instruction" id="instructionText">اضغط باستمرار على البطاقة لرؤية دورك</div>
+    <div class="hand-area" id="handArea"></div>
 
-        <div id="judgeView">
-            <div class="judge-title">أنت القاضي ⚖️</div>
-            <div class="judge-desc">مهمتك إدارة النقاش، وتنظيم عملية التصويت، وتلقي طلبات المافيا والمحقق والدكتور في الليل.</div>
-        </div>
+    <div class="controls">
+        <button class="btn btn-play" id="playBtn" disabled onclick="playCards()">⬇️ انزل الورق</button>
+        <button class="btn btn-liar" id="liarBtn" disabled onclick="callLiar()">🤥 كاااذب!</button>
+    </div>
 
-        <div id="cardContainer">
-            <div class="card-inner" id="cardInner">
-                <div class="card-front">؟</div>
-                <div class="card-back" id="cardBack">
-                    <div style="font-size: 1.2rem; color: #888;">أنت:</div>
-                    <div class="role-title" id="roleTitle">...</div>
-                    <div class="role-desc" id="roleDesc">...</div>
-                </div>
-            </div>
-        </div>
+    <div class="overlay-screen" id="overlayScreen">
+        <div id="overlayText"></div>
+        <button class="btn-shoot" id="shootBtn" onclick="shoot()">🔫 اسحب الزناد!</button>
     </div>
 
 </body>
