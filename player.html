@@ -43,6 +43,11 @@
         .dead .p-name { text-decoration: line-through; color: #666;}
         .flying-card-anim { position: absolute; width: 60px; height: 85px; border-radius: 4px; z-index: 100; transition: all 0.4s ease-out; box-shadow: 0 15px 30px rgba(0,0,0,0.8);}
 
+        /* شريط الإعلانات الجديد (Announcer) */
+        .action-announcer { position: absolute; top: 10%; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(15, 23, 42, 0.95); border: 2px solid #3b82f6; color: #fff; padding: 8px 25px; border-radius: 30px; font-size: 1.1rem; font-weight: bold; z-index: 150; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 20px rgba(59, 130, 246, 0.6); white-space: nowrap;}
+        .action-announcer.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .action-announcer span { color: #fcd34d; font-size: 1.2rem;}
+
         /* --- 3. القسم السفلي --- */
         .bottom-area { background: #110808; border-top: 2px solid #333; display: flex; flex-direction: column; align-items: center; padding-top: 15px; z-index: 20; height: 210px; flex-shrink: 0; position: relative;}
         .controls { display: flex; gap: 15px; margin-bottom: 10px; width: 90%; max-width: 500px;}
@@ -166,13 +171,28 @@
             renderTable(); renderUI(); renderPile();
         });
 
-        // الاستماع للأحداث الصوتية والبصرية
+        // الاستماع للأحداث الصوتية والبصرية ورسائل الإعلان
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
+            // 1. حدث رمي الورق
             if (ev.type === 'throw' && (Date.now() - ev.time < 3000)) {
                 animateThrow(ev.playerId, ev.count);
                 if (gameState.targetCard) playCardSound(gameState.targetCard, ev.count);
+                
+                // --- إظهار نص الإعلان لجميع اللاعبين ---
+                const pName = players[ev.playerId] ? players[ev.playerId].name : 'لاعب';
+                let cardsText = ev.count === 1 ? 'ورقة واحدة' : (ev.count === 2 ? 'ورقتين' : `${ev.count} أوراق`);
+                const announcer = document.getElementById('actionAnnouncer');
+                if (announcer) {
+                    announcer.innerHTML = `📢 <span>${pName}</span> نزل ${cardsText}`;
+                    announcer.classList.add('show');
+                    if (window.announcerTimer) clearTimeout(window.announcerTimer);
+                    window.announcerTimer = setTimeout(() => {
+                        announcer.classList.remove('show');
+                    }, 3000);
+                }
             }
+            // 2. حدث الروليت (الموت أو النجاة)
             if (ev.type === 'roulette_sound' && (Date.now() - ev.time < 8000)) {
                 playRouletteSound(ev.isDeath);
             }
@@ -287,7 +307,7 @@
                                 await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
                                 setTimeout(() => window.hostStartGame(), 4000);
                             }
-                        }, 7000); // الانتظار 7 ثواني بالضبط
+                        }, 7000); 
                     }
                 } catch(e) { console.error(e); }
                 remove(ref(db, `${rootRef}/actions/${key}`));
@@ -403,7 +423,7 @@
         window.liarAction = () => { if(confirm("إذا كان صادقاً ستموت أنت! متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId }); };
         window.triggerShoot = () => { push(actionsRef, { type: 'shoot', playerId: myId }); document.getElementById('overlay').innerHTML = `<h2>...</h2>`; };
         window.triggerStart = () => { if(isHost) window.hostStartGame(); };
-        window.triggerStartMatch = () => { if(isHost) window.hostStartMatch(); }; // تم الإصلاح لمنع الـ Loop!
+        window.triggerStartMatch = () => { if(isHost) window.hostStartMatch(); }; 
         
         window.copyPin = () => {
             navigator.clipboard.writeText(pin);
@@ -510,12 +530,16 @@
         <div class="turn-indicator" id="turnIndicator">جاري الاتصال...</div>
         <div class="target-box"><span>المطلوب:</span><div class="target-img-container" id="targetDisplay"></div></div>
     </div>
+    
     <div class="arena" id="gameArena">
+        <div id="actionAnnouncer" class="action-announcer"></div>
+        
         <div class="table"><div class="discard-pile" id="discardPile"></div></div>
         <div id="playersRing" style="width:100%; height:100%; position:absolute;"></div>
     </div>
+    
     <div class="bottom-area">
-        <div class="spectator-mode" id="spectatorMode"><h2>💀 أنت ميت</h2><p>وضع المشاهدة</p></div>
+        <div class="spectator-mode" id="spectatorMode"><h2>💀 أنت تشاهد الآن</h2><p>انتظر الجولة القادمة</p></div>
         <div class="controls" id="controls">
             <button class="btn btn-play" id="btnPlay" disabled onclick="playAction()">⬇️ انزل</button>
             <button class="btn btn-liar" id="btnLiar" disabled onclick="liarAction()">🤥 كذاب</button>
