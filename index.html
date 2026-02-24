@@ -42,7 +42,6 @@
             const name = getName();
             if (!name) return;
             const pin = Math.floor(1000 + Math.random() * 9000);
-            // الهوست الآن يذهب لصفحة اللعب مباشرة بصفة (host)
             window.location.href = `player.html?pin=${pin}&name=${encodeURIComponent(name)}&role=host`;
         }
         function joinRoom() {
