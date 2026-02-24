@@ -8,25 +8,19 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0505; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; background-image: radial-gradient(circle at center, #2a1010 0%, #000 100%); touch-action: manipulation;}
         
-        /* شريط الدور */
         .turn-banner { width: 100%; background: rgba(0,0,0,0.8); padding: 10px; text-align: center; font-size: 1.2rem; font-weight: bold; border-bottom: 2px solid #dc2626; z-index: 10;}
         .turn-banner span { color: #f59e0b; font-size: 1.4rem; }
 
-        /* ساحة اللعب والطاولة (نفس تصميم الهوست تماماً) */
         .game-arena { flex: 1; position: relative; width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;}
-        
         .table-center { position: absolute; width: 260px; height: 180px; background: #064e3b; border-radius: 20px; border: 10px solid #451a03; box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1;}
         
-        /* الأفاتار واللاعبين */
         .player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; width: 80px; transform: translate(-50%, -50%); z-index: 5; transition: all 0.5s ease;}
         .avatar { width: 50px; height: 50px; background: #1a1a1a; border-radius: 50%; border: 3px solid #555; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative;}
         .avatar svg { width: 25px; height: 25px; fill: #aaa; }
         .p-name { font-weight: bold; background: rgba(0,0,0,0.9); padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; margin-top: -8px; z-index: 2; border: 1px solid #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;}
         .p-gun { font-size: 0.75rem; color: #f59e0b; margin-top: 2px; font-weight: bold;}
         
-        /* تمييز مكاني أنا (بالأزرق) */
         .is-me .avatar { border-color: #3b82f6; background: #1e3a8a;}
-        
         .dead .avatar { border-color: #dc2626; opacity: 0.4;}
         .dead .p-name { text-decoration: line-through; color: #888;}
         .active-turn .avatar { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); animation: pulseAvatar 1s infinite;}
@@ -35,13 +29,11 @@
         .target-card-img { width: 50px; border-radius: 5px; box-shadow: 0 0 15px rgba(255,255,255,0.3); border: 2px solid #fff;}
         .flying-card { position: absolute; width: 40px; border-radius: 3px; z-index: 100; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 5px 10px rgba(0,0,0,0.5);}
         
-        /* منطقة الأوراق (يدي) */
         .my-hand-area { width: 100%; height: 130px; background: #110808; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15px; border-top: 2px solid #333; z-index: 10;}
         .real-card { width: 65px; border-radius: 5px; box-shadow: -5px 0 15px rgba(0,0,0,0.8); cursor: pointer; transition: all 0.2s ease-out; margin-left: -30px; position: relative;}
         .real-card:first-child { margin-left: 0; }
         .real-card.selected { transform: translateY(-20px); outline: 3px solid #f59e0b; z-index: 50; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.6);}
 
-        /* أزرار التحكم */
         .controls { display: flex; gap: 10px; padding: 15px; background: #000; border-top: 1px solid #222; z-index: 10;}
         .btn { flex: 1; padding: 15px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; color: white; transition: 0.1s;}
         .btn:active { transform: scale(0.95); }
@@ -49,14 +41,13 @@
         .btn-play { background: #2563eb; }
         .btn-liar { background: #dc2626; }
         
-        /* شاشة الكشف والروليت متوافقة مع اللاعب */
         .overlay-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;}
         .btn-shoot { background: transparent; border: 3px solid #dc2626; color: #dc2626; padding: 20px 40px; font-size: 2rem; border-radius: 15px; margin-top: 30px; font-weight: bold; cursor: pointer;}
         .btn-shoot:active { background: #dc2626; color: white; }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, get, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
         const app = initializeApp(firebaseConfig);
@@ -66,7 +57,6 @@
         const pin = urlParams.get('pin');
         let myName = urlParams.get('name');
 
-        // تسجيل الدخول بشكل آمن وقوي يمنع التعليق
         const storageKey = `liars_bar_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
         
@@ -122,14 +112,14 @@
 
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
-            if (ev.type === 'throw') animateCardThrow(ev.playerId, ev.count);
+            if (ev.type === 'throw' && (Date.now() - ev.time < 3000)) animateCardThrow(ev.playerId, ev.count);
         });
 
-        // رسم الطاولة المصغرة بطريقة دائرية، مع جعل موقعي دائماً في الأسفل
         window.renderArena = function() {
             const ring = document.getElementById('playersRing');
             ring.innerHTML = '';
-            const pKeys = Object.keys(allPlayers);
+            // ترتيب صارم لتوحيد الشاشات
+            const pKeys = Object.keys(allPlayers).sort();
             if(pKeys.length === 0) return;
 
             let myIndex = pKeys.indexOf(myId);
@@ -144,15 +134,13 @@
                 const isMe = id === myId ? 'is-me' : '';
                 const chambers = p.currentChamber !== undefined ? p.currentChamber : 0;
                 
-                // حساب الزاوية ليكون اللاعب الحالي في الأسفل تماماً (90 درجة = Math.PI / 2)
                 let relativeIndex = (i - myIndex + total) % total;
                 const angle = (relativeIndex / total) * (2 * Math.PI) + (Math.PI / 2);
                 
-                // أبعاد بيضاوية لتناسب شاشة الجوال الطولية
                 const radiusX = 40; 
                 const radiusY = 35; 
                 const left = 50 + radiusX * Math.cos(angle);
-                const top = 45 + radiusY * Math.sin(angle); // 45 لرفع المركز قليلاً
+                const top = 45 + radiusY * Math.sin(angle);
 
                 let nameDisplay = id === myId ? '(أنت)' : p.name;
 
@@ -166,7 +154,6 @@
             });
         }
 
-        // أنيميشن رمي الورق المصغر للاعبين
         function animateCardThrow(playerId, count) {
             const seat = document.getElementById(`seat-${playerId}`);
             const table = document.getElementById('tableCenter');
@@ -213,10 +200,16 @@
             renderHand(); updateUI();
         };
 
+        // حماية لمنع إرسال أكثر من طلب (Spam Protection)
         window.playCards = function() {
             if (selectedCards.length === 0) return;
+            
+            const btn = document.getElementById('playBtn');
+            btn.disabled = true; // تعطيل الزر فوراً
+            
             const cardsToPlay = selectedCards.map(i => myData.hand[i]);
             const newHand = myData.hand.filter((_, i) => !selectedCards.includes(i));
+            
             push(actionsRef, { type: 'play', playerId: myId, cards: cardsToPlay });
             set(ref(db, `liars_rooms/${pin}/players/${myId}/hand`), newHand);
             selectedCards = [];
@@ -242,7 +235,6 @@
             const shootBtn = document.getElementById('shootBtn');
             const tableCenter = document.getElementById('tableCenter');
 
-            // إذا لم يتم تحميل اللعبة بعد
             if (!gameState || !gameState.status) {
                 turnBanner.innerText = "جاري التزامن مع الطاولة...";
                 return;
@@ -274,6 +266,8 @@
                 if (gameState.turnId === myId) {
                     turnBanner.innerHTML = `دورك الآن! انزل ورقة أو اضغط كاذب`;
                     turnBanner.style.borderBottomColor = '#10b981';
+                    
+                    // إذا لم يحدد أوراق لا يفتح الزر
                     playBtn.disabled = selectedCards.length === 0;
                     liarBtn.disabled = stackCount === 0; 
                 } else {
