@@ -25,8 +25,7 @@
 
         /* --- 2. الساحة الوسطى (الطاولة) --- */
         .arena { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; width: 100%; padding: 20px;}
-        /* تم تصغير الطاولة قليلاً لتتمركز بشكل أفضل */
-        .table { width: 55vmin; height: 55vmin; max-width: 380px; max-height: 380px; background: radial-gradient(circle, #065f46 0%, #022c22 100%); border-radius: 50%; border: 12px solid #451a03; box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.7); position: relative; display: flex; justify-content: center; align-items: center; z-index: 1;}
+        .table { width: 60vmin; height: 60vmin; max-width: 400px; max-height: 400px; background: radial-gradient(circle, #065f46 0%, #022c22 100%); border-radius: 50%; border: 12px solid #451a03; box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.7); position: relative; display: flex; justify-content: center; align-items: center; z-index: 1;}
         .discard-pile { position: absolute; width: 60px; height: 85px; top: 50%; left: 50%; transform: translate(-50%, -50%);}
         .thrown-card { position: absolute; width: 60px; height: 85px; background-image: url('https://deckofcardsapi.com/static/img/back.png'); background-size: contain; background-repeat: no-repeat; background-position: center; border-radius: 4px; box-shadow: 2px 2px 8px rgba(0,0,0,0.8); top: 0; left: 0;}
 
@@ -40,12 +39,8 @@
         .active-turn .avatar { border-color: #f59e0b; transform: scale(1.2); box-shadow: 0 0 25px #f59e0b;}
         .active-turn .p-name { color: #f59e0b; border-color: #f59e0b;}
         .is-me .avatar { border-color: #3b82f6; background: #1e3a8a;}
-        
-        /* تنسيق الميت */
         .dead { opacity: 0.4; filter: grayscale(100%); }
         .dead .p-name { text-decoration: line-through; color: #666;}
-        .dead-icon { position: absolute; top: -10px; right: -10px; font-size: 20px; z-index: 5; filter: drop-shadow(0 0 5px black);}
-
         .flying-card-anim { position: absolute; width: 60px; height: 85px; border-radius: 4px; z-index: 100; transition: all 0.4s ease-out; box-shadow: 0 15px 30px rgba(0,0,0,0.8);}
 
         /* --- 3. القسم السفلي --- */
@@ -62,16 +57,13 @@
         .hand-card img { width: 100%; height: 100%; object-fit: contain; border-radius: 5px; box-shadow: -3px 0 10px rgba(0,0,0,0.8); display: block; background: #fff;}
         .hand-card.selected { transform: translateY(-20px); z-index: 50;}
         .hand-card.selected img { outline: 3px solid #f59e0b; box-shadow: 0 10px 20px rgba(245,158,11,0.6);}
-        
-        /* شاشة الميت */
-        .spectator-mode { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 60; display: none; flex-direction: column; justify-content: center; align-items: center; border-top: 2px solid #dc2626;}
+        .spectator-mode { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 60; display: none; flex-direction: column; justify-content: center; align-items: center; border-top: 2px solid #dc2626;}
         .spectator-mode h2 { color: #ef4444; font-size: 2rem; margin: 0; text-shadow: 0 0 15px #000;}
         .spectator-mode p { color: #aaa; font-size: 1rem; margin-top: 5px;}
 
         /* --- 4. شاشات التراكب --- */
         .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(5,5,5,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; backdrop-filter: blur(5px);}
         
-        /* اللوبي */
         .lobby-box { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #333; width: 90%; max-width: 600px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
         .room-code-display { font-size: 4rem; font-weight: 900; color: #dc2626; letter-spacing: 5px; margin: 10px 0; font-family: monospace; cursor: pointer; transition: 0.2s;}
         .room-code-display:active { transform: scale(0.95); color: #fff;}
@@ -84,7 +76,6 @@
         .start-btn { padding: 15px 40px; font-size: 1.5rem; background: linear-gradient(#16a34a, #15803d); color: white; border: none; border-radius: 12px; cursor: pointer; border-bottom: 5px solid #14532d; width: 100%; margin-top: 10px; transition: 0.2s;}
         .start-btn:active { transform: translateY(4px); border-bottom-width: 0px; }
         
-        /* النتائج */
         .result-box { background: #1a1a1a; padding: 40px; border-radius: 20px; border: 2px solid #333; box-shadow: 0 20px 50px #000; width: 90%; max-width: 500px;}
         .reveal-cards { display: flex; gap: 10px; margin: 20px 0; justify-content: center;}
         .reveal-cards img { width: 80px; border-radius: 6px; box-shadow: 0 0 15px rgba(255,255,255,0.2);}
@@ -98,21 +89,32 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // === 🎵 ربط ملفات الصوت بالأوراق 🎵 ===
+        // === 🎵 إعدادات الأصوات (البطاقات + الروليت) 🎵 ===
+        // تأكد من وجود مجلد sounds يحتوي على كل الملفات بصيغة mp3
         const AUDIO_MAP = {
             'A': { 1: 'sounds/1A.mp3', 2: 'sounds/2A.mp3', 3: 'sounds/3A.mp3', 4: 'sounds/4A.mp3' },
             'K': { 1: 'sounds/1K.mp3', 2: 'sounds/2K.mp3', 3: 'sounds/3K.mp3', 4: 'sounds/4K.mp3' },
             'Q': { 1: 'sounds/1Q.mp3', 2: 'sounds/2Q.mp3', 3: 'sounds/3Q.mp3', 4: 'sounds/4Q.mp3' }
         };
 
+        // تم التعديل إلى mp3 هنا
+        const SFX = {
+            kill: 'sounds/kill.mp3',
+            safe: 'sounds/safe.mp3'
+        };
+
+        // دالة تشغيل صوت البطاقات
         window.playCardSound = function(targetCard, count) {
             let playCount = count > 4 ? 4 : count;
-            // تشغيل الصوت إذا كانت الورقة في القاموس (الجوكر لا صوت له)
             if (AUDIO_MAP[targetCard] && AUDIO_MAP[targetCard][playCount]) {
-                const soundUrl = AUDIO_MAP[targetCard][playCount];
-                const audio = new Audio(soundUrl);
-                audio.play().catch(e => console.log("الصوت:", e));
+                new Audio(AUDIO_MAP[targetCard][playCount]).play().catch(()=>{});
             }
+        }
+
+        // دالة تشغيل صوت الروليت (7 ثواني)
+        window.playRouletteSound = function(isDeath) {
+            const file = isDeath ? SFX.kill : SFX.safe;
+            new Audio(file).play().catch(()=>{});
         }
         // ===============================================
 
@@ -125,7 +127,7 @@
         let myName = urlParams.get('name');
         const isHost = urlParams.get('role') === 'host';
 
-        const storageKey = `liars_final_${pin}_myId`;
+        const storageKey = `liars_v13_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
         if (!myId) { myId = "p_" + Date.now(); localStorage.setItem(storageKey, myId); }
 
@@ -168,27 +170,28 @@
             renderTable(); renderUI(); renderPile();
         });
 
+        // الاستماع للأحداث الصوتية والبصرية
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
+            // 1. حدث رمي الورق
             if (ev.type === 'throw' && (Date.now() - ev.time < 3000)) {
                 animateThrow(ev.playerId, ev.count);
                 if (gameState.targetCard) playCardSound(gameState.targetCard, ev.count);
             }
+            // 2. حدث الروليت (الموت أو النجاة)
+            if (ev.type === 'roulette_sound' && (Date.now() - ev.time < 8000)) {
+                playRouletteSound(ev.isDeath);
+            }
         });
 
-        // ----------------------------------------------------
-        // عقل السيرفر (الهوست فقط)
-        // ----------------------------------------------------
         if (isHost) {
             window.hostStartGame = async function() {
                 const allIds = Object.keys(players);
-                // لبدء اللعب الحقيقي تحتاج 2، للتجربة وحدك عدل الرقم إلى 1
-                if (allIds.length < 2) return alert("يجب وجود لاعبين اثنين على الأقل!");
+                if (allIds.length < 2) return alert("انتظر دخول لاعب آخر!");
 
                 const numPlayers = allIds.length;
                 let chosenSize = 6, jokersNeeded = 0, cardsPerType = 0, found = false;
 
-                // التوزيع على 3 أنواع (A, K, Q)
                 for (let size of [6, 5, 7, 8, 4]) {
                     let totalCards = size * numPlayers;
                     let remainder = totalCards % 3; 
@@ -204,7 +207,6 @@
                 deck.sort(() => Math.random() - 0.5);
 
                 let updates = {};
-                // توزيع الورق للأحياء فقط، وتصفير الموتى
                 Object.keys(players).forEach(id => { 
                     if(players[id].isAlive) {
                         updates[`players/${id}/hand`] = deck.splice(0, chosenSize);
@@ -236,6 +238,7 @@
             onChildAdded(actionsRef, async (snap) => {
                 const action = snap.val();
                 const key = snap.key;
+                const aliveIds = Object.keys(players).filter(id => players[id].isAlive).sort(); 
                 
                 try {
                     if (action.type === 'play') {
@@ -245,7 +248,6 @@
                         const evRef = push(eventsRef, { type: 'throw', playerId: action.playerId, count: action.cards.length, time: Date.now() });
                         setTimeout(() => remove(evRef), 4000);
 
-                        const aliveIds = Object.keys(players).filter(id => players[id].isAlive).sort();
                         const currIdx = aliveIds.indexOf(action.playerId);
                         const nextId = aliveIds[(currIdx + 1) % aliveIds.length];
 
@@ -271,30 +273,36 @@
                         const victim = players[action.playerId];
                         const died = victim.currentChamber === victim.bulletIndex;
                         
-                        await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
+                        // 1. الانتقال لحالة التوتر (الروليت)
+                        await update(stateRef, { status: 'roulette_sound_playing', victimName: victim.name });
+                        
+                        // 2. إرسال أمر تشغيل الصوت للجميع فوراً
+                        const soundEv = push(eventsRef, { type: 'roulette_sound', isDeath: died, time: Date.now() });
+                        setTimeout(() => remove(soundEv), 8000);
 
-                        if (died) {
-                            await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
-                            const aliveIds = Object.keys(players).filter(id => players[id].isAlive && id !== action.playerId);
-                            
-                            if (aliveIds.length === 1) {
-                                setTimeout(() => update(stateRef, { status: 'winner', winner: players[aliveIds[0]].name }), 5000);
+                        // 3. الانتظار 7 ثواني (مدة الصوت) ثم إظهار النتيجة
+                        setTimeout(async () => {
+                            await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
+
+                            if (died) {
+                                await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
+                                const survivors = aliveIds.filter(id => id !== action.playerId);
+                                if (survivors.length === 1) {
+                                    setTimeout(() => update(stateRef, { status: 'winner', winner: players[survivors[0]].name }), 4000);
+                                } else {
+                                    setTimeout(() => window.hostStartGame(), 4000);
+                                }
                             } else {
-                                setTimeout(() => window.hostStartGame(), 5000);
+                                await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
+                                setTimeout(() => window.hostStartGame(), 4000);
                             }
-                        } else {
-                            await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
-                            setTimeout(() => window.hostStartGame(), 5000);
-                        }
+                        }, 7000); // الانتظار 7 ثواني بالضبط
                     }
                 } catch(e) { console.error(e); }
                 remove(ref(db, `${rootRef}/actions/${key}`));
             });
         }
 
-        // ----------------------------------------------------
-        // الواجهة
-        // ----------------------------------------------------
         function renderTable() {
             const container = document.getElementById('playersRing');
             container.innerHTML = '';
@@ -316,15 +324,14 @@
                 const isActive = gameState.turnId === id ? 'active-turn' : '';
                 const isDead = !p.isAlive ? 'dead' : '';
                 const isMe = id === myId ? 'is-me' : '';
-                const gunInfo = p.isAlive ? `🔫 ${p.currentChamber}/6` : '';
-                const skull = !p.isAlive ? `<div class="dead-icon">💀</div>` : '';
+                const gunInfo = p.isAlive ? `🔫 ${p.currentChamber}/6` : '💀';
 
                 const el = document.createElement('div');
                 el.className = `player-seat ${isActive} ${isDead} ${isMe}`;
                 el.id = `avatar-${id}`;
                 el.style.left = `${left}%`;
                 el.style.top = `${top}%`;
-                el.innerHTML = `<div class="avatar-container">${skull}<div class="avatar"><span>👤</span></div></div><div class="p-name">${id === myId ? '(أنت) '+p.name : p.name}</div><div class="p-gun">${gunInfo}</div>`;
+                el.innerHTML = `<div class="avatar-container"><div class="avatar"><span>👤</span></div></div><div class="p-name">${id === myId ? '(أنت) '+p.name : p.name}</div><div class="p-gun">${gunInfo}</div>`;
                 container.appendChild(el);
             });
         }
@@ -432,7 +439,7 @@
             } else {
                 document.getElementById('spectatorMode').style.display = 'none';
                 if (gameState.status === 'playing') {
-                    if (gameState.turnId === myId && players[myId]?.isAlive) {
+                    if (gameState.turnId === myId) {
                         turnInd.innerHTML = `دورك الآن يا <span class="highlight">${myName}</span>!`;
                         turnInd.className = 'turn-indicator my-turn';
                     } else {
@@ -485,6 +492,10 @@
                 } else {
                     overlay.innerHTML = `<div class="result-box"><h1 style="font-size:4rem">🔫</h1><h2>${players[gameState.victimId]?.name} يمسك المسدس...</h2></div>`;
                 }
+            }
+            else if (gameState.status === 'roulette_sound_playing') {
+                overlay.style.display = 'flex';
+                overlay.innerHTML = `<div class="result-box"><h1 style="font-size:3rem">🥁</h1><h2 style="color:#fcd34d;">لحظة الحسم...</h2></div>`;
             }
             else if (gameState.status === 'shot_result') {
                 overlay.style.display = 'flex';
