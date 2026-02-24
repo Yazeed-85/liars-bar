@@ -11,12 +11,9 @@
         .header { text-align: center; padding: 15px; background: rgba(0,0,0,0.8); border-bottom: 2px solid #dc2626; z-index: 10;}
         .pin-display { font-size: 2.5rem; font-weight: 900; color: #dc2626; letter-spacing: 5px; text-shadow: 0 0 15px rgba(220, 38, 38, 0.5);}
         
-        /* ساحة اللعب والطاولة */
         .game-arena { flex: 1; position: relative; width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;}
-        
         .table-center { position: absolute; width: 350px; height: 250px; background: #064e3b; border-radius: 20px; border: 12px solid #451a03; box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1;}
         
-        /* الأفاتار واللاعبين */
         .player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; width: 100px; transform: translate(-50%, -50%); z-index: 5; transition: all 0.5s ease;}
         .avatar { width: 60px; height: 60px; background: #1a1a1a; border-radius: 50%; border: 3px solid #555; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.5); position: relative;}
         .avatar svg { width: 35px; height: 35px; fill: #aaa; }
@@ -25,17 +22,12 @@
         .dead .avatar { border-color: #dc2626; opacity: 0.4;}
         .dead .p-name { text-decoration: line-through; color: #888;}
         
-        /* وميض اللاعب الحالي */
         .active-turn .avatar { border-color: #f59e0b; box-shadow: 0 0 25px rgba(245, 158, 11, 0.8); animation: pulseAvatar 1.5s infinite;}
         @keyframes pulseAvatar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        /* الورقة المطلوبة */
         .target-card-img { width: 70px; border-radius: 5px; box-shadow: 0 0 20px rgba(255,255,255,0.3); border: 2px solid #fff;}
-        
-        /* أنيميشن البطاقات الطائرة */
         .flying-card { position: absolute; width: 50px; border-radius: 4px; z-index: 100; transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 10px 20px rgba(0,0,0,0.5);}
         
-        /* شاشة الكشف (القلب 3D) */
         .reveal-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center;}
         .flip-card { background-color: transparent; width: 120px; height: 170px; perspective: 1000px; margin: 0 10px;}
         .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d;}
@@ -54,7 +46,8 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, onChildAdded, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        // تمت إضافة أمر push المفقود لحل مشكلة السيرفر!
+        import { getDatabase, ref, set, onValue, update, onChildAdded, remove, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
         const app = initializeApp(firebaseConfig);
@@ -67,7 +60,7 @@
         const stateRef = ref(db, `liars_rooms/${pin}/gameState`);
         const playersRef = ref(db, `liars_rooms/${pin}/players`);
         const actionsRef = ref(db, `liars_rooms/${pin}/actions`);
-        const eventsRef = ref(db, `liars_rooms/${pin}/events`); // للأنيميشن المتزامن
+        const eventsRef = ref(db, `liars_rooms/${pin}/events`);
 
         const CARD_IMAGES = {
             'A': 'https://deckofcardsapi.com/static/img/AS.png', 'K': 'https://deckofcardsapi.com/static/img/KH.png',
@@ -85,13 +78,12 @@
         onValue(playersRef, (snap) => { players = snap.val() || {}; renderArena(); });
         onValue(stateRef, (snap) => { gameState = snap.val() || {}; updateHostUI(); });
 
-        // الاستماع لأحداث الأنيميشن (رمي الورق)
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
-            if (ev.type === 'throw') {
+            // تشغيل الأنيميشن فقط إذا كان حديثاً
+            if (ev.type === 'throw' && (Date.now() - ev.time < 3000)) {
                 animateCardThrow(ev.playerId, ev.count);
             }
-            remove(ref(db, `liars_rooms/${pin}/events/${snap.key}`));
         });
 
         window.startGame = async function() {
@@ -109,7 +101,8 @@
         };
 
         async function startNewRound() {
-            const alivePlayers = Object.keys(players).filter(id => players[id].isAlive);
+            // استخدام sort لضمان الترتيب المطابق للجميع
+            const alivePlayers = Object.keys(players).filter(id => players[id].isAlive).sort();
             if(alivePlayers.length === 1) {
                 set(stateRef, { status: 'game_over', winnerName: players[alivePlayers[0]].name });
                 return;
@@ -130,72 +123,68 @@
         }
 
         function getNextTurnId(currentId) {
-            const alive = Object.keys(players).filter(id => players[id].isAlive);
+            const alive = Object.keys(players).filter(id => players[id].isAlive).sort();
             const idx = alive.indexOf(currentId);
             return alive[(idx + 1) % alive.length];
         }
 
-        // عقل السيرفر لمعالجة القرارات
+        // تم إضافة try/catch لحماية السيرفر من أي تحطم
         onChildAdded(actionsRef, async (snap) => {
             const action = snap.val();
             const actionKey = snap.key;
             
-            if (action.type === 'play') {
-                let newStack = gameState.tableStack || [];
-                newStack.push(...action.cards);
-                
-                // إرسال حدث بصري للجميع لرمي الورق
-                push(eventsRef, { type: 'throw', playerId: action.playerId, count: action.cards.length });
+            try {
+                if (action.type === 'play') {
+                    let newStack = gameState.tableStack || [];
+                    newStack.push(...action.cards);
+                    
+                    const newEvent = push(eventsRef, { type: 'throw', playerId: action.playerId, count: action.cards.length, time: Date.now() });
+                    setTimeout(() => remove(newEvent), 5000); 
 
-                await update(stateRef, { tableStack: newStack, lastPlay: { playerId: action.playerId, cards: action.cards }, turnId: getNextTurnId(action.playerId) });
-            } 
-            else if (action.type === 'call_liar') {
-                const challenger = players[action.playerId].name;
-                const lastPlayerId = gameState.lastPlay.playerId;
-                const lastPlayer = players[lastPlayerId].name;
-                const playedCards = gameState.lastPlay.cards;
-                
-                let isLiar = false;
-                playedCards.forEach(c => { if(c !== gameState.targetCard && c !== 'Joker') isLiar = true; });
+                    await update(stateRef, { tableStack: newStack, lastPlay: { playerId: action.playerId, cards: action.cards }, turnId: getNextTurnId(action.playerId) });
+                } 
+                else if (action.type === 'call_liar') {
+                    const challenger = players[action.playerId].name;
+                    const lastPlayerId = gameState.lastPlay.playerId;
+                    const lastPlayer = players[lastPlayerId].name;
+                    const playedCards = gameState.lastPlay.cards;
+                    
+                    let isLiar = false;
+                    playedCards.forEach(c => { if(c !== gameState.targetCard && c !== 'Joker') isLiar = true; });
 
-                let victimId = isLiar ? lastPlayerId : action.playerId;
-                let victimName = isLiar ? lastPlayer : challenger;
+                    let victimId = isLiar ? lastPlayerId : action.playerId;
+                    let victimName = isLiar ? lastPlayer : challenger;
 
-                // الدخول في حالة الكشف 
-                await update(stateRef, { 
-                    status: 'reveal', 
-                    victimId: victimId, 
-                    victimName: victimName, 
-                    revealedCards: playedCards,
-                    isLiar: isLiar,
-                    accuser: challenger,
-                    accused: lastPlayer
-                });
+                    await update(stateRef, { 
+                        status: 'reveal', victimId: victimId, victimName: victimName, 
+                        revealedCards: playedCards, isLiar: isLiar, accuser: challenger, accused: lastPlayer
+                    });
 
-                // الانتظار 6 ثواني لمشاهدة الكشف، ثم الانتقال للروليت
-                setTimeout(async () => {
-                    await update(stateRef, { status: 'roulette' });
-                }, 6000);
-            }
-            else if (action.type === 'shoot') {
-                const vId = action.playerId;
-                const vData = players[vId];
-                
-                if (vData.currentChamber === vData.bulletIndex) {
-                    await update(ref(db, `liars_rooms/${pin}/players/${vId}`), { isAlive: false });
-                } else {
-                    await update(ref(db, `liars_rooms/${pin}/players/${vId}`), { currentChamber: vData.currentChamber + 1 });
+                    setTimeout(async () => { await update(stateRef, { status: 'roulette' }); }, 6000);
                 }
-                setTimeout(() => { startNewRound(); }, 4000);
+                else if (action.type === 'shoot') {
+                    const vId = action.playerId;
+                    const vData = players[vId];
+                    
+                    if (vData.currentChamber === vData.bulletIndex) {
+                        await update(ref(db, `liars_rooms/${pin}/players/${vId}`), { isAlive: false });
+                    } else {
+                        await update(ref(db, `liars_rooms/${pin}/players/${vId}`), { currentChamber: vData.currentChamber + 1 });
+                    }
+                    setTimeout(() => { startNewRound(); }, 4000);
+                }
+            } catch (e) {
+                console.error("Server Error:", e);
+            } finally {
+                remove(ref(db, `liars_rooms/${pin}/actions/${actionKey}`));
             }
-            remove(ref(db, `liars_rooms/${pin}/actions/${actionKey}`));
         });
 
-        // هندسة رسم اللاعبين بشكل دائري حول الطاولة
         window.renderArena = function() {
             const ring = document.getElementById('playersRing');
             ring.innerHTML = '';
-            const pKeys = Object.keys(players);
+            // ترتيب صارم لتوحيد الشاشات
+            const pKeys = Object.keys(players).sort(); 
             const total = pKeys.length;
             
             pKeys.forEach((id, index) => {
@@ -204,10 +193,9 @@
                 const isActive = gameState.turnId === id ? 'active-turn' : '';
                 const chambers = p.currentChamber !== undefined ? p.currentChamber : 0;
                 
-                // حساب الموقع الدائري بالنسب المئوية ليتجاوب مع الشاشة
-                const angle = (index / total) * (2 * Math.PI) - (Math.PI / 2); // يبدأ من الأعلى
-                const radiusX = 40; // % العرض
-                const radiusY = 38; // % الطول
+                const angle = (index / total) * (2 * Math.PI) - (Math.PI / 2); 
+                const radiusX = 40; 
+                const radiusY = 38; 
                 const left = 50 + radiusX * Math.cos(angle);
                 const top = 50 + radiusY * Math.sin(angle);
 
@@ -221,7 +209,6 @@
             });
         }
 
-        // أنيميشن رمي الورق من اللاعب للطاولة
         function animateCardThrow(playerId, count) {
             const seat = document.getElementById(`seat-${playerId}`);
             const table = document.getElementById('tableCenter');
@@ -235,24 +222,19 @@
                     const card = document.createElement('img');
                     card.src = CARD_IMAGES['Back'];
                     card.className = 'flying-card';
-                    // بداية الانطلاق من الأفاتار
                     card.style.left = `${seatRect.left + 20}px`;
                     card.style.top = `${seatRect.top + 20}px`;
                     card.style.transform = `rotate(${Math.random() * 360}deg)`;
                     document.body.appendChild(card);
 
-                    // تحريكها نحو الطاولة بعد 50 ملي ثانية
                     setTimeout(() => {
                         card.style.left = `${tableRect.left + (tableRect.width/2) - 25 + (Math.random()*40 - 20)}px`;
                         card.style.top = `${tableRect.top + (tableRect.height/2) - 35 + (Math.random()*40 - 20)}px`;
                         card.style.transform = `rotate(${Math.random() * 60 - 30}deg)`;
                     }, 50);
 
-                    // إخفائها وإضافتها للرقم في الطاولة
-                    setTimeout(() => {
-                        card.remove();
-                    }, 600);
-                }, i * 200); // تأخير بين كل ورقة وأخرى
+                    setTimeout(() => card.remove(), 600);
+                }, i * 200); 
             }
         }
 
@@ -273,7 +255,6 @@
                 stackEl.innerText = `أوراق مقلوبة: ${(gameState.tableStack || []).length}`;
             }
             else if (gameState.status === 'reveal') {
-                // شاشة قلب الأوراق
                 revealScreen.style.display = 'flex';
                 
                 let cardsHTML = '';
@@ -291,10 +272,8 @@
 
                 document.getElementById('revealCards').innerHTML = cardsHTML;
                 
-                // تفعيل أنيميشن القلب بعد ثانية للتشويق
                 setTimeout(() => {
                     document.querySelectorAll('.flip-card').forEach(el => el.classList.add('do-flip'));
-                    
                     setTimeout(() => {
                         const title = document.getElementById('revealTitle');
                         if(gameState.isLiar) {
@@ -304,7 +283,6 @@
                         }
                     }, 800);
                 }, 1000);
-
                 document.getElementById('revealTitle').innerHTML = "لحظة الحقيقة...";
             }
             else if (gameState.status === 'roulette') {
@@ -333,7 +311,6 @@
             <div id="targetCard"></div>
             <div id="stackCount" style="color: #fcd34d; font-weight: bold; margin-top: 15px; font-size: 1.2rem;"></div>
         </div>
-        
         <div id="playersRing"></div>
     </div>
 
