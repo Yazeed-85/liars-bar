@@ -89,21 +89,18 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // === 🎵 إعدادات الأصوات (البطاقات + الروليت) 🎵 ===
-        // تأكد من وجود مجلد sounds يحتوي على كل الملفات بصيغة mp3
+        // === 🎵 إعدادات الأصوات 🎵 ===
         const AUDIO_MAP = {
             'A': { 1: 'sounds/1A.mp3', 2: 'sounds/2A.mp3', 3: 'sounds/3A.mp3', 4: 'sounds/4A.mp3' },
             'K': { 1: 'sounds/1K.mp3', 2: 'sounds/2K.mp3', 3: 'sounds/3K.mp3', 4: 'sounds/4K.mp3' },
             'Q': { 1: 'sounds/1Q.mp3', 2: 'sounds/2Q.mp3', 3: 'sounds/3Q.mp3', 4: 'sounds/4Q.mp3' }
         };
 
-        // تم التعديل إلى mp3 هنا
         const SFX = {
             kill: 'sounds/kill.mp3',
             safe: 'sounds/safe.mp3'
         };
 
-        // دالة تشغيل صوت البطاقات
         window.playCardSound = function(targetCard, count) {
             let playCount = count > 4 ? 4 : count;
             if (AUDIO_MAP[targetCard] && AUDIO_MAP[targetCard][playCount]) {
@@ -111,7 +108,6 @@
             }
         }
 
-        // دالة تشغيل صوت الروليت (7 ثواني)
         window.playRouletteSound = function(isDeath) {
             const file = isDeath ? SFX.kill : SFX.safe;
             new Audio(file).play().catch(()=>{});
@@ -173,12 +169,10 @@
         // الاستماع للأحداث الصوتية والبصرية
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
-            // 1. حدث رمي الورق
             if (ev.type === 'throw' && (Date.now() - ev.time < 3000)) {
                 animateThrow(ev.playerId, ev.count);
                 if (gameState.targetCard) playCardSound(gameState.targetCard, ev.count);
             }
-            // 2. حدث الروليت (الموت أو النجاة)
             if (ev.type === 'roulette_sound' && (Date.now() - ev.time < 8000)) {
                 playRouletteSound(ev.isDeath);
             }
@@ -273,14 +267,11 @@
                         const victim = players[action.playerId];
                         const died = victim.currentChamber === victim.bulletIndex;
                         
-                        // 1. الانتقال لحالة التوتر (الروليت)
                         await update(stateRef, { status: 'roulette_sound_playing', victimName: victim.name });
                         
-                        // 2. إرسال أمر تشغيل الصوت للجميع فوراً
                         const soundEv = push(eventsRef, { type: 'roulette_sound', isDeath: died, time: Date.now() });
                         setTimeout(() => remove(soundEv), 8000);
 
-                        // 3. الانتظار 7 ثواني (مدة الصوت) ثم إظهار النتيجة
                         setTimeout(async () => {
                             await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
 
@@ -412,7 +403,8 @@
         window.liarAction = () => { if(confirm("إذا كان صادقاً ستموت أنت! متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId }); };
         window.triggerShoot = () => { push(actionsRef, { type: 'shoot', playerId: myId }); document.getElementById('overlay').innerHTML = `<h2>...</h2>`; };
         window.triggerStart = () => { if(isHost) window.hostStartGame(); };
-        window.hostStartMatch = () => { if(isHost) window.hostStartMatch(); };
+        window.triggerStartMatch = () => { if(isHost) window.hostStartMatch(); }; // تم الإصلاح لمنع الـ Loop!
+        
         window.copyPin = () => {
             navigator.clipboard.writeText(pin);
             const t = document.getElementById('toast'); t.classList.add('show');
@@ -507,7 +499,7 @@
             }
             else if (gameState.status === 'winner') {
                 overlay.style.display = 'flex';
-                overlay.innerHTML = `<div class="result-box"><h1 style="font-size:5rem">🏆</h1><h2 style="color:#fcd34d">الفائز: ${gameState.winner}</h2>${isHost ? '<button class="start-btn" style="margin-top:30px;" onclick="window.hostStartMatch()">بدء مباراة جديدة للجميع 🔄</button>' : ''}</div>`;
+                overlay.innerHTML = `<div class="result-box"><h1 style="font-size:5rem">🏆</h1><h2 style="color:#fcd34d">الفائز: ${gameState.winner}</h2>${isHost ? '<button class="start-btn" style="margin-top:30px;" onclick="triggerStartMatch()">بدء مباراة جديدة للجميع 🔄</button>' : ''}</div>`;
             }
         }
     </script>
