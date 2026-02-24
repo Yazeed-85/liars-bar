@@ -3,48 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Liar's Bar</title>
+    <title>طاولة اللعب - Liar's Bar</title>
     <style>
         /* إعدادات الأساس لمنع الانزياح والتشوه */
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0505; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; background-image: radial-gradient(circle at center, #1a0505 0%, #000 100%); touch-action: manipulation;}
         
-        /* --- 1. القسم العلوي (ثابت الحجم لحماية التصميم) --- */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.8); border-bottom: 2px solid #451a03; height: 80px; flex-shrink: 0; z-index: 20;}
+        /* --- 1. القسم العلوي (ثابت الحجم) --- */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.9); border-bottom: 2px solid #451a03; height: 85px; flex-shrink: 0; z-index: 20;}
         
-        .room-pin { font-family: monospace; color: #888; font-size: 1.1rem; background: #111; padding: 5px 10px; border-radius: 8px;}
+        .room-pin { font-family: monospace; color: #888; font-size: 1.1rem; background: #111; padding: 5px 10px; border-radius: 8px; border: 1px solid #333;}
         
-        .turn-indicator { flex: 1; text-align: center; font-size: 1.3rem; font-weight: bold;}
-        .turn-indicator .highlight { color: #f59e0b; font-size: 1.6rem; text-shadow: 0 0 15px rgba(245, 158, 11, 0.8);}
+        .turn-indicator { flex: 1; text-align: center; font-size: 1.4rem; font-weight: bold;}
+        .turn-indicator .highlight { color: #f59e0b; font-size: 1.7rem; text-shadow: 0 0 15px rgba(245, 158, 11, 0.8);}
         .turn-indicator.my-turn .highlight { color: #10b981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.8);}
 
-        /* صندوق الورقة المطلوبة (حجم ثابت لمنع التضخم) */
+        /* صندوق الورقة المطلوبة */
         .target-box { display: flex; align-items: center; gap: 10px; background: #3f1808; padding: 5px 15px; border-radius: 12px; border: 1px solid #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);}
-        .target-box span { font-weight: bold; color: #fcd34d; font-size: 1rem;}
-        .target-img-container { width: 35px; height: 50px; display: flex; justify-content: center; align-items: center; }
-        .target-img-container img { width: 100%; height: 100%; object-fit: contain; border-radius: 3px; animation: glowTarget 1.5s infinite alternate;}
-        @keyframes glowTarget { from { filter: drop-shadow(0 0 2px #f59e0b); } to { filter: drop-shadow(0 0 8px #f59e0b); transform: scale(1.05); } }
+        .target-box span { font-weight: bold; color: #fcd34d; font-size: 1.1rem;}
+        .target-img-container { width: 40px; height: 55px; display: flex; justify-content: center; align-items: center; }
+        .target-img-container img { width: 100%; height: 100%; object-fit: contain; border-radius: 4px; animation: glowTarget 1.5s infinite alternate; border: 1px solid #fff;}
+        @keyframes glowTarget { from { filter: drop-shadow(0 0 3px #f59e0b); } to { filter: drop-shadow(0 0 12px #f59e0b); transform: scale(1.05); } }
 
-        /* --- 2. ساحة الطاولة --- */
-        .arena { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; width: 100%;}
+        /* --- 2. الساحة الوسطى (الطاولة) --- */
+        .arena { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; width: 100%; padding: 20px;}
         
-        .table { width: 70vmin; height: 70vmin; max-width: 450px; max-height: 450px; background: radial-gradient(circle, #065f46 0%, #022c22 100%); border-radius: 50%; border: 12px solid #451a03; box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.7); position: relative; display: flex; justify-content: center; align-items: center; z-index: 1;}
+        /* الطاولة متجاوبة الحجم بدقة */
+        .table { width: 60vmin; height: 60vmin; max-width: 400px; max-height: 400px; background: radial-gradient(circle, #065f46 0%, #022c22 100%); border-radius: 50%; border: 12px solid #451a03; box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.7); position: relative; display: flex; justify-content: center; align-items: center; z-index: 1;}
         
-        /* الكومة في المنتصف (بأبعاد إجبارية) */
         .discard-pile { position: absolute; width: 60px; height: 85px; top: 50%; left: 50%; transform: translate(-50%, -50%);}
-        .thrown-card { position: absolute; width: 60px; height: 85px; background-image: url('https://deckofcardsapi.com/static/img/back.png'); background-size: contain; background-repeat: no-repeat; background-position: center; border-radius: 4px; box-shadow: 2px 2px 8px rgba(0,0,0,0.8); top: 0; left: 0; transform-origin: center;}
+        .thrown-card { position: absolute; width: 60px; height: 85px; background-image: url('https://deckofcardsapi.com/static/img/back.png'); background-size: cover; background-repeat: no-repeat; background-position: center; border-radius: 4px; box-shadow: 2px 2px 8px rgba(0,0,0,0.8); top: 0; left: 0;}
 
-        /* مقاعد اللاعبين */
-        .player-seat { position: absolute; width: 80px; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); z-index: 10;}
-        .avatar-container { position: relative; width: 55px; height: 55px; display: flex; justify-content: center; align-items: center;}
-        .avatar { width: 100%; height: 100%; background: #1f2937; border-radius: 50%; border: 3px solid #4b5563; display: flex; justify-content: center; align-items: center; font-size: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 2;}
+        /* مقاعد اللاعبين حول الطاولة */
+        .player-seat { position: absolute; width: 90px; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); z-index: 10;}
+        .avatar-container { position: relative; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center;}
+        .avatar { width: 100%; height: 100%; background: #1f2937; border-radius: 50%; border: 3px solid #4b5563; display: flex; justify-content: center; align-items: center; font-size: 28px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 2; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
         
-        .p-name { background: rgba(0,0,0,0.9); padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; margin-top: -5px; z-index: 3; border: 1px solid #333; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; font-weight: bold;}
-        .p-gun { font-size: 0.75rem; color: #ef4444; background: #111; padding: 2px 6px; border-radius: 4px; margin-top: 3px; font-weight: bold; border: 1px solid #333;}
+        .p-name { background: rgba(0,0,0,0.95); padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; margin-top: -8px; z-index: 3; border: 1px solid #444; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; font-weight: bold;}
+        .p-gun { font-size: 0.8rem; color: #ef4444; background: #111; padding: 2px 8px; border-radius: 4px; margin-top: 4px; font-weight: bold; border: 1px solid #333;}
         
-        /* الوميض الخارق للاعب النشط */
-        .active-turn .avatar { border-color: #f59e0b; }
-        .active-turn .avatar-container::before { content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; border-radius: 50%; border: 4px solid #f59e0b; box-shadow: 0 0 20px #f59e0b, inset 0 0 20px #f59e0b; animation: superPulse 1s infinite alternate; z-index: 1;}
+        /* الوميض الخارق للاعب النشط (مرئي للجميع) */
+        .active-turn .avatar { border-color: #f59e0b; transform: scale(1.15); box-shadow: 0 0 25px #f59e0b;}
+        .active-turn .avatar-container::before { content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; border-radius: 50%; border: 4px solid #f59e0b; box-shadow: 0 0 20px #f59e0b; animation: superPulse 1s infinite alternate; z-index: 1;}
         @keyframes superPulse { 0% { transform: scale(0.9); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
         .active-turn .p-name { color: #f59e0b; border-color: #f59e0b;}
 
@@ -52,39 +52,38 @@
         .dead { opacity: 0.4; filter: grayscale(100%); }
         .dead .p-name { text-decoration: line-through; color: #666;}
 
-        /* أنيميشن الرمي */
-        .flying-card-anim { position: absolute; width: 60px; height: 85px; border-radius: 4px; z-index: 100; transition: all 0.4s ease-out; box-shadow: 0 15px 30px rgba(0,0,0,0.8);}
+        /* الورقة الطائرة */
+        .flying-card-anim { position: absolute; width: 60px; height: 85px; border-radius: 4px; z-index: 100; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 15px 30px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.4);}
 
-        /* --- 3. القسم السفلي (التحكم) --- */
-        .bottom-area { background: #110808; border-top: 2px solid #333; display: flex; flex-direction: column; align-items: center; padding-top: 15px; z-index: 20; flex-shrink: 0; position: relative;}
+        /* --- 3. القسم السفلي (أوراقي وأزراري) --- */
+        .bottom-area { background: #110808; border-top: 2px solid #333; display: flex; flex-direction: column; align-items: center; padding-top: 15px; z-index: 20; height: 230px; flex-shrink: 0; position: relative;}
         
         .controls { display: flex; gap: 15px; margin-bottom: 10px; width: 90%; max-width: 500px;}
-        .btn { flex: 1; padding: 12px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+        .btn { flex: 1; padding: 15px; font-size: 1.3rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
         .btn:active { transform: scale(0.95); }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(100%);}
         .btn-play { background: linear-gradient(135deg, #2563eb, #1e3a8a); border-bottom: 4px solid #172554;}
         .btn-liar { background: linear-gradient(135deg, #dc2626, #7f1d1d); border-bottom: 4px solid #450a0a;}
         
-        /* منطقة الأوراق (إصلاح مشكلة الخطوط) */
-        .my-hand { height: 110px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 10px; width: 100%; overflow-x: auto;}
-        .hand-card { min-width: 65px; max-width: 75px; aspect-ratio: 5/7; margin-left: -30px; cursor: pointer; transition: 0.2s; position: relative;}
+        .my-hand { height: 120px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15px; width: 100%; overflow-x: auto;}
+        .hand-card { width: 75px; margin-left: -35px; cursor: pointer; transition: 0.2s; position: relative; transform-origin: bottom center;}
         .hand-card:first-child { margin-left: 0; }
-        .hand-card img { width: 100%; height: 100%; object-fit: contain; border-radius: 5px; box-shadow: -3px 0 10px rgba(0,0,0,0.8); display: block;}
-        .hand-card.selected { transform: translateY(-20px); z-index: 50;}
-        .hand-card.selected img { outline: 3px solid #f59e0b; box-shadow: 0 10px 20px rgba(245,158,11,0.8);}
+        .hand-card img { width: 100%; height: auto; object-fit: contain; border-radius: 6px; box-shadow: -3px 0 12px rgba(0,0,0,0.8); display: block;}
+        .hand-card.selected { transform: translateY(-30px); z-index: 50;}
+        .hand-card.selected img { outline: 3px solid #f59e0b; box-shadow: 0 10px 25px rgba(245,158,11,0.8);}
 
-        /* وضع المشاهدة للميت */
-        .spectator-mode { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 60; display: none; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(2px);}
-        .spectator-mode h2 { color: #ef4444; font-size: 2rem; margin: 0; text-shadow: 0 0 10px #000;}
-        .spectator-mode p { color: #aaa; font-size: 1rem;}
+        /* شاشة اللاعب الميت (المشاهدة) */
+        .spectator-mode { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 60; display: none; flex-direction: column; justify-content: center; align-items: center; border-top: 2px solid #dc2626;}
+        .spectator-mode h2 { color: #ef4444; font-size: 2.5rem; margin: 0; text-shadow: 0 0 15px #000;}
+        .spectator-mode p { color: #aaa; font-size: 1.2rem; margin-top: 5px;}
 
         /* --- 4. شاشات التراكب --- */
         .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(5,5,5,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; backdrop-filter: blur(5px);}
         .result-box { background: #1a1a1a; padding: 40px; border-radius: 20px; border: 2px solid #333; box-shadow: 0 20px 50px #000; width: 90%; max-width: 500px;}
-        .start-btn { padding: 15px 40px; font-size: 1.5rem; background: linear-gradient(#16a34a, #15803d); color: white; border: none; border-radius: 12px; cursor: pointer; border-bottom: 5px solid #14532d; width: 100%; margin-top: 20px;}
+        .start-btn { padding: 15px 40px; font-size: 1.6rem; background: linear-gradient(#16a34a, #15803d); color: white; border: none; border-radius: 12px; cursor: pointer; border-bottom: 5px solid #14532d; width: 100%; margin-top: 20px;}
         
         .reveal-cards { display: flex; gap: 10px; margin: 20px 0; justify-content: center;}
-        .reveal-cards img { width: 80px; height: auto; border-radius: 6px; box-shadow: 0 0 15px rgba(255,255,255,0.2);}
+        .reveal-cards img { width: 90px; height: auto; border-radius: 6px; box-shadow: 0 0 15px rgba(255,255,255,0.2);}
         .truth-glow img { box-shadow: 0 0 40px #10b981; border: 3px solid #10b981;}
         .liar-glow img { box-shadow: 0 0 40px #dc2626; border: 3px solid #dc2626;}
     </style>
@@ -101,7 +100,7 @@
         let myName = urlParams.get('name');
         const isHost = urlParams.get('role') === 'host';
 
-        const storageKey = `liars_v6_${pin}_myId`;
+        const storageKey = `liars_v7_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
         if (!myId) { myId = "p_" + Date.now(); localStorage.setItem(storageKey, myId); }
 
@@ -112,12 +111,12 @@
         const actionsRef = ref(db, `${rootRef}/actions`);
         const eventsRef = ref(db, `${rootRef}/events`);
 
-        // الصور (4 أنواع فقط كما طلبت + الجوكر)
+        // الصور (بدون رقم 10 نهائياً)
         const CARD_IMGS = {
-            'K': 'https://deckofcardsapi.com/static/img/KH.png', 
-            'Q': 'https://deckofcardsapi.com/static/img/QD.png',
-            'J': 'https://deckofcardsapi.com/static/img/JC.png', 
-            'A': 'https://deckofcardsapi.com/static/img/AS.png',
+            'A': 'https://deckofcardsapi.com/static/img/AS.png', 
+            'K': 'https://deckofcardsapi.com/static/img/KH.png',
+            'Q': 'https://deckofcardsapi.com/static/img/QD.png', 
+            'J': 'https://deckofcardsapi.com/static/img/JC.png',
             'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
             'Back': 'https://deckofcardsapi.com/static/img/back.png'
         };
@@ -137,11 +136,11 @@
             players = snap.val() || {};
             myHand = players[myId]?.hand || [];
             renderTable(); renderHand();
-            updateUI();
         });
 
         onValue(stateRef, (snap) => {
             gameState = snap.val() || { status: 'lobby', tableStack: [] };
+            renderTable(); // للتأكد من نقل الوميض (Glow) فوراً
             renderUI(); renderPile();
         });
 
@@ -151,7 +150,7 @@
         });
 
         // ----------------------------------------------------
-        // عقل السيرفر 
+        // عقل السيرفر (رياضيات وتوزيع)
         // ----------------------------------------------------
         if (isHost) {
             window.hostStartGame = async function() {
@@ -161,7 +160,7 @@
                 const numPlayers = aliveIds.length;
                 let chosenSize = 6, jokersNeeded = 0, cardsPerType = 0, found = false;
 
-                // التوزيع على 4 أنواع أساسية بدلاً من 5 (A, K, Q, J)
+                // القسمة على 4 أنواع أساسية (A, K, Q, J)
                 for (let size of [5, 6, 7, 8]) {
                     let totalCards = size * numPlayers;
                     for (let j = 0; j <= 2; j++) {
@@ -173,14 +172,14 @@
                 }
 
                 let deck = [];
-                ['K', 'Q', 'J', 'A'].forEach(type => { for(let k=0; k < cardsPerType; k++) deck.push(type); });
+                ['A', 'K', 'Q', 'J'].forEach(type => { for(let k=0; k < cardsPerType; k++) deck.push(type); });
                 for(let k=0; k < jokersNeeded; k++) deck.push('Joker');
                 deck.sort(() => Math.random() - 0.5);
 
                 let updates = {};
                 aliveIds.forEach(id => { updates[`players/${id}/hand`] = deck.splice(0, chosenSize); });
 
-                const target = ['K', 'Q', 'J', 'A'][Math.floor(Math.random() * 4)];
+                const target = ['A', 'K', 'Q', 'J'][Math.floor(Math.random() * 4)];
                 const firstTurn = aliveIds[Math.floor(Math.random() * aliveIds.length)];
 
                 updates[`gameState`] = { status: 'playing', targetCard: target, turnId: firstTurn, tableStack: [], lastPlay: null };
@@ -223,7 +222,6 @@
                         const victim = players[action.playerId];
                         const died = victim.currentChamber === victim.bulletIndex;
                         
-                        // عرض النتيجة بوضوح لـ 5 ثواني
                         await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
 
                         if (died) {
@@ -245,9 +243,8 @@
         }
 
         // ----------------------------------------------------
-        // الواجهة المرئية
+        // رسم الطاولة (يمينك هو التالي)
         // ----------------------------------------------------
-        
         function renderTable() {
             const container = document.getElementById('playersRing');
             container.innerHTML = '';
@@ -261,13 +258,15 @@
             
             pKeys.forEach((id, i) => {
                 let relativeI = (i - myIndex + count) % count;
-                let angle = (relativeI / count) * (2 * Math.PI) + (Math.PI / 2);
+                // المعادلة العكسية ليكون اللاعب التالي على يمينك
+                let angle = (Math.PI / 2) - (relativeI / count) * (2 * Math.PI);
                 
                 let rx = 45; let ry = 42;
                 let left = 50 + (Math.cos(angle) * rx); 
                 let top = 50 + (Math.sin(angle) * ry); 
 
                 const p = players[id];
+                // تحديث الكلاس ليضيء اللاعب النشط للجميع فوراً
                 const isActive = gameState.turnId === id ? 'active-turn' : '';
                 const isDead = !p.isAlive ? 'dead' : '';
                 const isMe = id === myId ? 'is-me' : '';
@@ -338,16 +337,18 @@
         function renderHand() {
             const handDiv = document.getElementById('myHand');
             handDiv.innerHTML = '';
-            if (!myHand) return;
+            if (!myHand || myHand.length === 0) return;
 
             myHand.forEach((cardCode, i) => {
-                const img = document.createElement('img');
-                img.src = CARD_IMGS[cardCode]; 
-                const div = document.createElement('div');
-                div.className = `hand-card ${selectedIndices.includes(i) ? 'selected' : ''}`;
-                div.onclick = () => toggleSelect(i);
-                div.appendChild(img);
-                handDiv.appendChild(div);
+                if(CARD_IMGS[cardCode]) { // للتأكد من عدم ظهور صورة مكسورة
+                    const img = document.createElement('img');
+                    img.src = CARD_IMGS[cardCode]; 
+                    const div = document.createElement('div');
+                    div.className = `hand-card ${selectedIndices.includes(i) ? 'selected' : ''}`;
+                    div.onclick = () => toggleSelect(i);
+                    div.appendChild(img);
+                    handDiv.appendChild(div);
+                }
             });
         }
 
@@ -356,6 +357,29 @@
             if (selectedIndices.includes(i)) selectedIndices = selectedIndices.filter(x => x !== i);
             else selectedIndices.push(i);
             renderHand(); updateBtns();
+        };
+
+        window.playAction = () => {
+            if (selectedIndices.length === 0) return;
+            document.getElementById('btnPlay').disabled = true; // منع التكرار
+
+            const cards = selectedIndices.map(i => myHand[i]);
+            // تحديث اليد محلياً فوراً لمنع ظهور فراغات
+            myHand = myHand.filter((_, i) => !selectedIndices.includes(i));
+            set(ref(db, `${rootRef}/players/${myId}/hand`), myHand); // تحديث الداتابيز مباشرة ليدي
+            
+            push(actionsRef, { type: 'play', playerId: myId, cards: cards });
+            selectedIndices = [];
+            renderHand(); 
+        };
+
+        window.liarAction = () => {
+            if(confirm("إذا كان صادقاً ستموت أنت! متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId });
+        };
+
+        window.triggerShoot = () => {
+            push(actionsRef, { type: 'shoot', playerId: myId });
+            document.getElementById('overlay').innerHTML = `<h2>...</h2>`;
         };
 
         function updateBtns() {
@@ -370,33 +394,31 @@
         }
 
         function renderUI() {
-            // تحديث الورقة المطلوبة الثابتة
             if (gameState.targetCard) {
                 document.getElementById('targetDisplay').innerHTML = `<img src="${CARD_IMGS[gameState.targetCard]}">`;
             }
             document.getElementById('pinDisplay').innerText = `PIN: ${pin}`;
 
             const turnInd = document.getElementById('turnIndicator');
-            const deadOverlay = document.getElementById('spectatorMode');
+            const spectatorMode = document.getElementById('spectatorMode');
             
-            // وضع المشاهدة
             if (players[myId] && !players[myId].isAlive && gameState.status !== 'lobby') {
-                deadOverlay.style.display = 'flex';
-                turnInd.innerHTML = "أنت تراقب 👀";
+                spectatorMode.style.display = 'flex';
+                turnInd.innerHTML = "👀 وضع المشاهدة";
+                turnInd.className = 'turn-indicator';
             } else {
-                deadOverlay.style.display = 'none';
-            }
-
-            if (gameState.status === 'playing') {
-                if (gameState.turnId === myId && players[myId]?.isAlive) {
-                    turnInd.innerHTML = `دورك الآن يا <span class="highlight">${myName}</span>!`;
-                    turnInd.className = 'turn-indicator my-turn';
-                } else {
-                    const tName = players[gameState.turnId] ? players[gameState.turnId].name : '...';
-                    turnInd.innerHTML = `اللعب الآن عند: <span class="highlight">${tName}</span>`;
-                    turnInd.className = 'turn-indicator';
+                spectatorMode.style.display = 'none';
+                if (gameState.status === 'playing') {
+                    if (gameState.turnId === myId && players[myId]?.isAlive) {
+                        turnInd.innerHTML = `دورك الآن يا <span class="highlight">${myName}</span>!`;
+                        turnInd.className = 'turn-indicator my-turn';
+                    } else {
+                        const tName = players[gameState.turnId] ? players[gameState.turnId].name : '...';
+                        turnInd.innerHTML = `اللعب الآن عند: <span class="highlight">${tName}</span>`;
+                        turnInd.className = 'turn-indicator';
+                    }
+                    updateBtns();
                 }
-                updateBtns();
             }
 
             const overlay = document.getElementById('overlay');
@@ -406,7 +428,7 @@
                     overlay.innerHTML = `
                         <div class="result-box">
                             <h2 style="color:#aaa">أخبر أصدقاءك بهذا الكود:</h2>
-                            <div class="room-code-display">${pin}</div>
+                            <div style="font-size: 5rem; font-weight: 900; color: #dc2626; letter-spacing: 5px; font-family: monospace;">${pin}</div>
                             <div style="color:#f59e0b; font-size:1.2rem; margin-bottom:20px;">اللاعبين: ${Object.keys(players).length}</div>
                             <button class="start-btn" onclick="triggerStart()">🎲 بدء اللعبة</button>
                         </div>`;
@@ -443,9 +465,9 @@
             else if (gameState.status === 'shot_result') {
                 overlay.style.display = 'flex';
                 if (gameState.died) {
-                    overlay.innerHTML = `<div class="result-box"><h1 style="font-size:4rem">💥</h1><h1 style="color:#ef4444">بـــوووم!</h1><h2 style="margin-top:10px; color:#aaa;">لقد مات ${gameState.victimName}!</h2></div>`;
+                    overlay.innerHTML = `<div class="result-box"><h1 style="font-size:5rem">💥</h1><h1 style="color:#ef4444">بـــوووم!</h1><h2 style="margin-top:10px; color:#aaa;">لقد مات ${gameState.victimName}!</h2></div>`;
                 } else {
-                    overlay.innerHTML = `<div class="result-box"><h1 style="font-size:3rem; color:#888">كليييك...</h1><h2 style="color:#10b981; margin-top:10px;">لقد نجا ${gameState.victimName}!</h2></div>`;
+                    overlay.innerHTML = `<div class="result-box"><h1 style="font-size:4rem; color:#888">كليييك...</h1><h2 style="color:#10b981; margin-top:10px;">لقد نجا ${gameState.victimName}!</h2></div>`;
                 }
             }
             else if (gameState.status === 'winner') {
@@ -453,26 +475,6 @@
                 overlay.innerHTML = `<div class="result-box"><h1 style="font-size:5rem">🏆</h1><h2 style="margin-top:10px; color:#fcd34d">الفائز: ${gameState.winner}</h2>${isHost ? '<button class="start-btn" style="margin-top:30px;" onclick="triggerStart()">لعبة جديدة</button>' : ''}</div>`;
             }
         }
-
-        window.triggerStart = () => { if(isHost) window.hostStartGame(); };
-        
-        window.playAction = () => {
-            const cards = selectedIndices.map(i => myHand[i]);
-            push(actionsRef, { type: 'play', playerId: myId, cards: cards });
-            myHand = myHand.filter((_, i) => !selectedIndices.includes(i));
-            selectedIndices = [];
-            renderHand(); document.getElementById('btnPlay').disabled = true;
-        };
-
-        window.liarAction = () => {
-            if(confirm("إذا كان صادقاً ستموت أنت! متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId });
-        };
-
-        window.triggerShoot = () => {
-            push(actionsRef, { type: 'shoot', playerId: myId });
-            document.getElementById('overlay').innerHTML = `<h2>...</h2>`;
-        };
-
     </script>
 </head>
 <body>
@@ -506,9 +508,7 @@
         <div class="my-hand" id="myHand"></div>
     </div>
 
-    <div class="overlay" id="overlay">
-        <h2>جاري الاتصال...</h2>
-    </div>
+    <div class="overlay" id="overlay"></div>
 
 </body>
 </html>
