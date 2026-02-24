@@ -3,51 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>شاشة اللاعب - Liar's Bar</title>
+    <title>طاولة اللعب - Liar's Bar</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0505; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; background-image: radial-gradient(circle at center, #2a1010 0%, #000 100%); touch-action: manipulation;}
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0505; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; background-image: radial-gradient(circle at center, #1a0505 0%, #000 100%); touch-action: manipulation;}
         
-        .turn-banner { width: 100%; background: rgba(0,0,0,0.8); padding: 10px; text-align: center; font-size: 1.2rem; font-weight: bold; border-bottom: 2px solid #dc2626; z-index: 10;}
-        .turn-banner span { color: #f59e0b; font-size: 1.4rem; }
+        /* 1. المنطقة العليا: الورقة المطلوبة + معلومات */
+        .top-info-bar { padding: 10px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); border-bottom: 1px solid #333; height: 70px; z-index: 20;}
+        .target-display { display: flex; align-items: center; gap: 10px; background: #3f1808; padding: 5px 15px; border-radius: 30px; border: 2px solid #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);}
+        .target-icon { width: 30px; height: 40px; background: white; border-radius: 4px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 1.2rem;}
+        .room-pin { font-family: monospace; color: #666; font-size: 1.2rem; letter-spacing: 2px;}
 
-        .game-arena { flex: 1; position: relative; width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;}
-        .table-center { position: absolute; width: 260px; height: 180px; background: #064e3b; border-radius: 20px; border: 10px solid #451a03; box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1;}
+        /* 2. منطقة الطاولة واللاعبين */
+        .table-area { flex: 1; position: relative; width: 100%; display: flex; justify-content: center; align-items: center; perspective: 1000px;}
         
-        .player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; width: 80px; transform: translate(-50%, -50%); z-index: 5; transition: all 0.5s ease;}
-        .avatar { width: 50px; height: 50px; background: #1a1a1a; border-radius: 50%; border: 3px solid #555; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative;}
-        .avatar svg { width: 25px; height: 25px; fill: #aaa; }
-        .p-name { font-weight: bold; background: rgba(0,0,0,0.9); padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; margin-top: -8px; z-index: 2; border: 1px solid #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;}
-        .p-gun { font-size: 0.75rem; color: #f59e0b; margin-top: 2px; font-weight: bold;}
+        /* الطاولة الخضراء */
+        .table-felt { width: 280px; height: 280px; background: radial-gradient(circle, #065f46 0%, #064e3b 100%); border-radius: 50%; border: 15px solid #451a03; box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 20px 60px rgba(0,0,0,0.8); position: relative; display: flex; justify-content: center; align-items: center;}
         
-        .is-me .avatar { border-color: #3b82f6; background: #1e3a8a;}
-        .dead .avatar { border-color: #dc2626; opacity: 0.4;}
-        .dead .p-name { text-decoration: line-through; color: #888;}
-        .active-turn .avatar { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); animation: pulseAvatar 1s infinite;}
-        @keyframes pulseAvatar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        /* كومة الأوراق المرمية (واقعية) */
+        .discard-pile { position: relative; width: 60px; height: 90px;}
+        .thrown-card { position: absolute; width: 60px; height: 84px; background-image: url('https://deckofcardsapi.com/static/img/back.png'); background-size: cover; border-radius: 5px; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); border: 1px solid #ddd; top: 0; left: 0;}
 
-        .target-card-img { width: 50px; border-radius: 5px; box-shadow: 0 0 15px rgba(255,255,255,0.3); border: 2px solid #fff;}
-        .flying-card { position: absolute; width: 40px; border-radius: 3px; z-index: 100; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 5px 10px rgba(0,0,0,0.5);}
+        /* مقاعد اللاعبين (دائرية) */
+        .player-seat { position: absolute; width: 70px; height: 90px; display: flex; flex-direction: column; align-items: center; transition: all 0.5s; z-index: 10;}
+        .avatar { width: 50px; height: 50px; background: #1f2937; border-radius: 50%; border: 2px solid #4b5563; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative;}
+        .avatar img { width: 35px; }
+        .p-name { background: rgba(0,0,0,0.8); padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-top: -10px; z-index: 2; border: 1px solid #333; white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis;}
+        .p-gun { font-size: 0.7rem; color: #f59e0b; font-weight: bold; background: #000; padding: 1px 5px; border-radius: 4px; margin-top: 2px;}
         
-        .my-hand-area { width: 100%; height: 130px; background: #110808; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15px; border-top: 2px solid #333; z-index: 10;}
-        .real-card { width: 65px; border-radius: 5px; box-shadow: -5px 0 15px rgba(0,0,0,0.8); cursor: pointer; transition: all 0.2s ease-out; margin-left: -30px; position: relative;}
-        .real-card:first-child { margin-left: 0; }
-        .real-card.selected { transform: translateY(-20px); outline: 3px solid #f59e0b; z-index: 50; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.6);}
+        .active-turn .avatar { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); transform: scale(1.1);}
+        .is-me .avatar { border-color: #3b82f6; background: #172554;}
+        .dead { opacity: 0.4; filter: grayscale(100%); }
 
-        .controls { display: flex; gap: 10px; padding: 15px; background: #000; border-top: 1px solid #222; z-index: 10;}
-        .btn { flex: 1; padding: 15px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; color: white; transition: 0.1s;}
+        /* 3. منطقة اليد (أوراقي) */
+        .my-hand { height: 160px; width: 100%; background: linear-gradient(to top, #1a0505, transparent); display: flex; justify-content: center; align-items: flex-end; padding-bottom: 20px; gap: 0; z-index: 50; overflow-x: auto;}
+        .hand-card { width: 80px; transition: transform 0.2s; margin-left: -35px; cursor: pointer; border-radius: 6px; box-shadow: -2px 0 10px rgba(0,0,0,0.5); position: relative;}
+        .hand-card:first-child { margin-left: 0; }
+        .hand-card.selected { transform: translateY(-30px); z-index: 100; outline: 3px solid #f59e0b; box-shadow: 0 10px 20px rgba(0,0,0,0.8);}
+        .hand-card img { width: 100%; border-radius: 6px; display: block;}
+
+        /* 4. الأزرار */
+        .controls { position: absolute; bottom: 180px; width: 100%; display: flex; justify-content: center; gap: 20px; pointer-events: none; z-index: 60;}
+        .btn { pointer-events: auto; padding: 12px 30px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 30px; cursor: pointer; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.1s; min-width: 120px;}
         .btn:active { transform: scale(0.95); }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%);}
-        .btn-play { background: #2563eb; }
-        .btn-liar { background: #dc2626; }
+        .btn:disabled { opacity: 0; pointer-events: none; } /* إخفاء الأزرار عند عدم الحاجة */
+        .btn-play { background: linear-gradient(#2563eb, #1d4ed8); border: 2px solid #60a5fa; }
+        .btn-liar { background: linear-gradient(#dc2626, #b91c1c); border: 2px solid #f87171; }
         
-        .overlay-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;}
-        .btn-shoot { background: transparent; border: 3px solid #dc2626; color: #dc2626; padding: 20px 40px; font-size: 2rem; border-radius: 15px; margin-top: 30px; font-weight: bold; cursor: pointer;}
-        .btn-shoot:active { background: #dc2626; color: white; }
+        /* شاشات التراكب */
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.92); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center;}
+        .start-btn { padding: 20px 50px; font-size: 1.5rem; background: #16a34a; color: white; border: none; border-radius: 15px; cursor: pointer; animation: pulse 2s infinite;}
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(22, 163, 74, 0); } 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); } }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, get, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
         const app = initializeApp(firebaseConfig);
@@ -56,269 +67,443 @@
         const urlParams = new URLSearchParams(window.location.search);
         const pin = urlParams.get('pin');
         let myName = urlParams.get('name');
+        const isHost = urlParams.get('role') === 'host';
 
-        const storageKey = `liars_bar_${pin}_myId`;
+        // تخزين الهوية
+        const storageKey = `liars_v2_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
-        
-        if (!myId) {
-            myId = "player_" + Date.now();
-            localStorage.setItem(storageKey, myId);
-            set(ref(db, `liars_rooms/${pin}/players/${myId}`), { name: myName, isAlive: true, hand: [], currentChamber: 0, bulletIndex: Math.floor(Math.random() * 6) });
-        } else {
-            get(ref(db, `liars_rooms/${pin}/players/${myId}`)).then((snap) => {
-                if(!snap.exists()) {
-                    set(ref(db, `liars_rooms/${pin}/players/${myId}`), { name: myName, isAlive: true, hand: [], currentChamber: 0, bulletIndex: Math.floor(Math.random() * 6) });
-                } else {
-                    myName = snap.val().name;
-                }
-            });
-        }
+        if (!myId) { myId = "p_" + Date.now(); localStorage.setItem(storageKey, myId); }
 
-        const myRef = ref(db, `liars_rooms/${pin}/players/${myId}`);
-        const playersRef = ref(db, `liars_rooms/${pin}/players`);
-        const stateRef = ref(db, `liars_rooms/${pin}/gameState`);
-        const actionsRef = ref(db, `liars_rooms/${pin}/actions`);
-        const eventsRef = ref(db, `liars_rooms/${pin}/events`);
+        // المراجع
+        const rootRef = `liars_rooms/${pin}`;
+        const myPlayerRef = ref(db, `${rootRef}/players/${myId}`);
+        const playersRef = ref(db, `${rootRef}/players`);
+        const stateRef = ref(db, `${rootRef}/gameState`);
+        const actionsRef = ref(db, `${rootRef}/actions`);
 
-        const CARD_IMAGES = {
-            'A': 'https://deckofcardsapi.com/static/img/AS.png', 'K': 'https://deckofcardsapi.com/static/img/KH.png',
-            'Q': 'https://deckofcardsapi.com/static/img/QD.png', 'J': 'https://deckofcardsapi.com/static/img/JC.png',
-            'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
-            'Back': 'https://deckofcardsapi.com/static/img/back.png'
+        // الصور
+        const CARD_IMGS = {
+            'K': 'https://deckofcardsapi.com/static/img/KH.png', 'Q': 'https://deckofcardsapi.com/static/img/QD.png',
+            'J': 'https://deckofcardsapi.com/static/img/JC.png', 'A': 'https://deckofcardsapi.com/static/img/AS.png',
+            '10': 'https://deckofcardsapi.com/static/img/0S.png', 'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png'
         };
 
-        let gameState = {};
-        let allPlayers = {};
-        let myData = {};
-        let selectedCards = [];
+        // المتغيرات المحلية
+        let gameState = { status: 'lobby', tableStack: [] };
+        let players = {};
+        let myHand = [];
+        let selectedIndices = [];
 
-        onValue(playersRef, (snap) => {
-            if(snap.exists()) {
-                allPlayers = snap.val();
-                myData = allPlayers[myId] || {};
-                renderArena();
-                renderHand();
-                updateUI();
+        // 1. الدخول والتسجيل
+        get(myPlayerRef).then((snap) => {
+            if (!snap.exists()) {
+                set(myPlayerRef, { 
+                    name: myName, isAlive: true, hand: [], 
+                    bulletIndex: Math.floor(Math.random() * 6), currentChamber: 0 
+                });
             }
+        });
+
+        // 2. الاستماع للبيانات
+        onValue(playersRef, (snap) => {
+            players = snap.val() || {};
+            myHand = players[myId]?.hand || [];
+            renderTable();
+            renderHand();
         });
 
         onValue(stateRef, (snap) => {
-            if(snap.exists()) {
-                gameState = snap.val();
-                renderArena();
-                updateUI();
-            }
+            gameState = snap.val() || { status: 'lobby', tableStack: [] };
+            renderUI();
+            renderPile(); // تحديث كومة الورق
         });
 
-        onChildAdded(eventsRef, (snap) => {
-            const ev = snap.val();
-            if (ev.type === 'throw' && (Date.now() - ev.time < 3000)) animateCardThrow(ev.playerId, ev.count);
-        });
+        // ----------------------------------------------------
+        // منطق السيرفر (يعمل فقط عند الهوست)
+        // ----------------------------------------------------
+        if (isHost) {
+            // تهيئة أولية
+            update(stateRef, { status: 'lobby' }); // التأكد من الحالة
 
-        window.renderArena = function() {
-            const ring = document.getElementById('playersRing');
-            ring.innerHTML = '';
-            // ترتيب صارم لتوحيد الشاشات
-            const pKeys = Object.keys(allPlayers).sort();
-            if(pKeys.length === 0) return;
+            // دالة بدء اللعبة (الخوارزمية الذكية)
+            window.hostStartGame = async function() {
+                const aliveIds = Object.keys(players).filter(id => players[id].isAlive);
+                if (aliveIds.length < 2) return alert("نحتاج لاعبين اثنين على الأقل!");
 
-            let myIndex = pKeys.indexOf(myId);
-            if (myIndex === -1) myIndex = 0;
-
-            const total = pKeys.length;
-            
-            pKeys.forEach((id, i) => {
-                const p = allPlayers[id];
-                const isDead = p.isAlive === false ? 'dead' : '';
-                const isActive = gameState.turnId === id ? 'active-turn' : '';
-                const isMe = id === myId ? 'is-me' : '';
-                const chambers = p.currentChamber !== undefined ? p.currentChamber : 0;
+                // 1. حساب التوزيع المثالي
+                const N = aliveIds.length;
+                let handSize = 6;
+                let typesCount = 0;
+                let jokersCount = 0;
                 
-                let relativeIndex = (i - myIndex + total) % total;
-                const angle = (relativeIndex / total) * (2 * Math.PI) + (Math.PI / 2);
-                
-                const radiusX = 40; 
-                const radiusY = 35; 
-                const left = 50 + radiusX * Math.cos(angle);
-                const top = 45 + radiusY * Math.sin(angle);
+                // نحاول إيجاد معادلة: Total = 5*X + J بحيث Total % N == 0
+                // نجرب أحجام يد مختلفة إذا لزم الأمر
+                const possibleSizes = [6, 5, 7, 8];
+                let found = false;
 
-                let nameDisplay = id === myId ? '(أنت)' : p.name;
+                for (let size of possibleSizes) {
+                    let totalNeeded = size * N;
+                    // نجرب 0 أو 1 أو 2 جوكر
+                    for (let j = 0; j <= 2; j++) {
+                        if ((totalNeeded - j) % 5 === 0) {
+                            typesCount = (totalNeeded - j) / 5;
+                            jokersCount = j;
+                            handSize = size;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) break;
+                }
 
-                ring.innerHTML += `
-                    <div class="player-seat ${isActive} ${isDead} ${isMe}" id="seat-${id}" style="left: ${left}%; top: ${top}%;">
-                        <div class="avatar"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-                        <div class="p-name">${nameDisplay}</div>
-                        <div class="p-gun">🔫 ${chambers}/6</div>
-                    </div>
-                `;
+                if (!found) {
+                    // حالة نادرة جداً، نلجأ لتوزيع غير متساوٍ قليلاً (Fallback)
+                    handSize = 6; typesCount = Math.ceil((N*6)/5); jokersCount = 0;
+                }
+
+                // 2. بناء "الدك" (المجموعة)
+                let deck = [];
+                ['K', 'Q', 'J', 'A', '10'].forEach(type => {
+                    for(let i=0; i<typesCount; i++) deck.push(type);
+                });
+                for(let i=0; i<jokersCount; i++) deck.push('Joker');
+
+                // خلط
+                deck.sort(() => Math.random() - 0.5);
+
+                // 3. التوزيع
+                let updates = {};
+                aliveIds.forEach(id => {
+                    let hand = deck.splice(0, handSize);
+                    updates[`players/${id}/hand`] = hand;
+                    // إعادة تعبئة المسدس لجولة جديدة (اختياري، أو إبقاؤه كما هو)
+                });
+
+                // اختيار الهدف (بدون جوكر)
+                const target = ['K', 'Q', 'J', 'A', '10'][Math.floor(Math.random() * 5)];
+                const firstTurn = aliveIds[Math.floor(Math.random() * aliveIds.length)];
+
+                updates[`gameState`] = {
+                    status: 'playing',
+                    targetCard: target,
+                    turnId: firstTurn,
+                    tableStack: [], // تصفير الطاولة
+                    lastPlay: null
+                };
+
+                await update(ref(db, rootRef), updates);
+            };
+
+            // معالج الأوامر (Host Brain)
+            onChildAdded(actionsRef, async (snap) => {
+                const action = snap.val();
+                const key = snap.key;
+                const aliveIds = Object.keys(players).filter(id => players[id].isAlive).sort(); // ترتيب ثابت
+
+                if (action.type === 'play') {
+                    // إضافة الأوراق للطاولة
+                    let stack = gameState.tableStack || [];
+                    // نضيف فقط "ظهور" الورقة وليس قيمتها الحقيقية (للتمويه في العميل)
+                    // لكن في السيرفر نخزن القيمة الحقيقية في lastPlay
+                    const visualCards = action.cards.map(() => ({ rot: Math.random()*360, x: Math.random()*10, y: Math.random()*10 }));
+                    
+                    // دمج المصفوفات
+                    const newStack = stack.concat(visualCards);
+
+                    // تحديد الدور التالي
+                    const currIdx = aliveIds.indexOf(action.playerId);
+                    const nextId = aliveIds[(currIdx + 1) % aliveIds.length];
+
+                    await update(stateRef, {
+                        tableStack: newStack,
+                        turnId: nextId,
+                        lastPlay: { playerId: action.playerId, cards: action.cards } // هنا نحفظ الحقيقة
+                    });
+                }
+                else if (action.type === 'liar') {
+                    // منطق كشف الكذب
+                    const lastMove = gameState.lastPlay;
+                    const accuser = players[action.playerId].name;
+                    const accused = players[lastMove.playerId].name;
+                    
+                    let isLiar = false;
+                    lastMove.cards.forEach(card => {
+                        if (card !== gameState.targetCard && card !== 'Joker') isLiar = true;
+                    });
+
+                    let victimId = isLiar ? lastMove.playerId : action.playerId;
+                    
+                    await update(stateRef, {
+                        status: 'reveal',
+                        revealedCards: lastMove.cards,
+                        isLiar: isLiar,
+                        victimId: victimId,
+                        msg: isLiar ? `كاذب! ${accused} غشاش!` : `صادق! ${accuser} ظلمك!`
+                    });
+
+                    setTimeout(() => update(stateRef, { status: 'roulette' }), 5000);
+                }
+                else if (action.type === 'shoot') {
+                    const victim = players[action.playerId];
+                    if (victim.currentChamber === victim.bulletIndex) {
+                        // مات
+                        await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
+                        
+                        // التحقق من الفائز
+                        const survivors = aliveIds.filter(id => id !== action.playerId);
+                        if (survivors.length === 1) {
+                            await update(stateRef, { status: 'winner', winner: players[survivors[0]].name });
+                        } else {
+                            setTimeout(() => window.hostStartGame(), 3000); // جولة جديدة
+                        }
+                    } else {
+                        // نجا
+                        await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
+                        setTimeout(() => window.hostStartGame(), 3000); // جولة جديدة
+                    }
+                }
+
+                remove(ref(db, `${rootRef}/actions/${key}`)); // حذف الأمر
             });
         }
 
-        function animateCardThrow(playerId, count) {
-            const seat = document.getElementById(`seat-${playerId}`);
-            const table = document.getElementById('tableCenter');
-            if(!seat || !table) return;
+        // ----------------------------------------------------
+        // واجهة المستخدم (مشتركة للجميع)
+        // ----------------------------------------------------
+        
+        // دالة رسم الطاولة واللاعبين
+        function renderTable() {
+            const container = document.getElementById('playersRing');
+            container.innerHTML = '';
+            
+            const pKeys = Object.keys(players).sort(); // ترتيب أبجدي ثابت للجميع لتوحيد الرؤية
+            if (pKeys.length === 0) return;
 
-            const seatRect = seat.getBoundingClientRect();
-            const tableRect = table.getBoundingClientRect();
+            // تدوير المصفوفة ليكون "أنا" دائماً في الأسفل (index 0 بصرياً)
+            let myIndex = pKeys.indexOf(myId);
+            if (myIndex === -1) myIndex = 0; // للمراقبين
+            
+            const count = pKeys.length;
+            
+            pKeys.forEach((id, i) => {
+                // حساب الموقع النسبي
+                let relativeI = (i - myIndex + count) % count;
+                
+                // حساب الإحداثيات على دائرة (باستخدام زوايا)
+                // الموضع 0 (أنا) يكون في زاوية 90 درجة (أسفل)
+                let angle = (relativeI / count) * (2 * Math.PI) + (Math.PI / 2);
+                
+                // نصف القطر (يعتمد على حجم الشاشة، نستخدم نسب مئوية تقريبية)
+                let rx = 140; // عرض
+                let ry = 140; // طول
+                
+                let left = 50 + (Math.cos(angle) * 40); // %
+                let top = 50 + (Math.sin(angle) * 40); // %
 
-            for(let i=0; i<count; i++) {
-                setTimeout(() => {
-                    const card = document.createElement('img');
-                    card.src = CARD_IMAGES['Back'];
-                    card.className = 'flying-card';
-                    card.style.left = `${seatRect.left + 20}px`;
-                    card.style.top = `${seatRect.top + 20}px`;
-                    document.body.appendChild(card);
+                const p = players[id];
+                const isActive = gameState.turnId === id ? 'active-turn' : '';
+                const isDead = !p.isAlive ? 'dead' : '';
+                const gunInfo = p.isAlive ? `🔫 ${p.currentChamber}/6` : '💀';
 
-                    setTimeout(() => {
-                        card.style.left = `${tableRect.left + (tableRect.width/2) - 20 + (Math.random()*20 - 10)}px`;
-                        card.style.top = `${tableRect.top + (tableRect.height/2) - 20 + (Math.random()*20 - 10)}px`;
-                        card.style.transform = `rotate(${Math.random() * 60 - 30}deg)`;
-                    }, 50);
+                const el = document.createElement('div');
+                el.className = `player-seat ${isActive} ${isDead} ${id === myId ? 'is-me' : ''}`;
+                el.style.left = `${left}%`;
+                el.style.top = `${top}%`;
+                el.innerHTML = `
+                    <div class="avatar">
+                        <span style="font-size:20px">👤</span>
+                    </div>
+                    <div class="p-name">${p.name}</div>
+                    <div class="p-gun">${gunInfo}</div>
+                `;
+                container.appendChild(el);
+            });
+        }
 
-                    setTimeout(() => card.remove(), 500);
-                }, i * 150); 
+        // دالة رسم كومة الورق في الوسط
+        function renderPile() {
+            const pile = document.getElementById('discardPile');
+            const stack = gameState.tableStack || [];
+            
+            // لتجنب إعادة الرسم الثقيل، نضيف فقط الجديد إذا زاد العدد
+            // أو نعيد الرسم إذا صفرنا الطاولة
+            if (stack.length === 0) {
+                pile.innerHTML = '';
+                return;
+            }
+            
+            // مقارنة بسيطة: إذا العدد اختلف نعيد الرسم (الأبسط والأضمن)
+            if (pile.childElementCount !== stack.length) {
+                pile.innerHTML = '';
+                stack.forEach((cardMeta, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'thrown-card';
+                    // استخدام البيانات المخزنة عشوائياً في السيرفر لتوحيد الشكل
+                    card.style.transform = `rotate(${cardMeta.rot}deg) translate(${cardMeta.x}px, ${cardMeta.y}px)`;
+                    card.style.zIndex = i;
+                    pile.appendChild(card);
+                });
             }
         }
 
         function renderHand() {
-            const area = document.getElementById('myHandArea');
-            area.innerHTML = '';
-            if (!myData.hand) return;
+            const handDiv = document.getElementById('myHand');
+            handDiv.innerHTML = '';
+            if (!myHand) return;
 
-            myData.hand.forEach((card, index) => {
-                const isSel = selectedCards.includes(index) ? 'selected' : '';
-                area.innerHTML += `<img src="${CARD_IMAGES[card]}" id="card-${index}" class="real-card ${isSel}" style="z-index: ${index};" onclick="toggleCard(${index})">`;
+            myHand.forEach((cardCode, i) => {
+                const img = document.createElement('img');
+                img.src = CARD_IMGS[cardCode] || CARD_IMGS['10']; // Fallback
+                const div = document.createElement('div');
+                div.className = `hand-card ${selectedIndices.includes(i) ? 'selected' : ''}`;
+                div.onclick = () => toggleSelect(i);
+                div.appendChild(img);
+                handDiv.appendChild(div);
             });
         }
 
-        window.toggleCard = function(index) {
-            if (gameState.turnId !== myId || gameState.status !== 'playing') return;
-            if (selectedCards.includes(index)) selectedCards = selectedCards.filter(i => i !== index);
-            else selectedCards.push(index);
-            renderHand(); updateUI();
+        window.toggleSelect = (i) => {
+            if (gameState.status !== 'playing' || gameState.turnId !== myId) return;
+            if (selectedIndices.includes(i)) selectedIndices = selectedIndices.filter(x => x !== i);
+            else selectedIndices.push(i);
+            renderHand();
+            updateBtns();
         };
 
-        // حماية لمنع إرسال أكثر من طلب (Spam Protection)
-        window.playCards = function() {
-            if (selectedCards.length === 0) return;
+        function updateBtns() {
+            const btnPlay = document.getElementById('btnPlay');
+            const btnLiar = document.getElementById('btnLiar');
             
-            const btn = document.getElementById('playBtn');
-            btn.disabled = true; // تعطيل الزر فوراً
+            if (gameState.turnId === myId) {
+                // زر اللعب مفعل إذا اخترت ورقة واحدة على الأقل
+                btnPlay.disabled = selectedIndices.length === 0;
+                // زر كاذب مفعل فقط إذا كان هناك ورق على الطاولة
+                btnLiar.disabled = (gameState.tableStack || []).length === 0;
+                
+                btnPlay.style.opacity = btnPlay.disabled ? 0.5 : 1;
+                btnLiar.style.opacity = btnLiar.disabled ? 0.5 : 1;
+                
+                // إظهارهم
+                document.getElementById('controls').style.display = 'flex';
+            } else {
+                document.getElementById('controls').style.display = 'none';
+            }
+        }
+
+        function renderUI() {
+            // تحديث الشريط العلوي
+            document.getElementById('targetIcon').innerText = gameState.targetCard || '?';
+            document.getElementById('pinDisplay').innerText = `PIN: ${pin}`;
+
+            // الشاشات المنبثقة
+            const overlay = document.getElementById('overlay');
             
-            const cardsToPlay = selectedCards.map(i => myData.hand[i]);
-            const newHand = myData.hand.filter((_, i) => !selectedCards.includes(i));
-            
-            push(actionsRef, { type: 'play', playerId: myId, cards: cardsToPlay });
-            set(ref(db, `liars_rooms/${pin}/players/${myId}/hand`), newHand);
-            selectedCards = [];
-        };
-
-        window.callLiar = function() {
-            if (confirm("هل أنت متأكد من تكذيبه؟ الرصاصة بانتظارك إن كان صادقاً!")) {
-                push(actionsRef, { type: 'call_liar', playerId: myId });
-            }
-        };
-
-        window.shoot = function() {
-            document.getElementById('shootBtn').style.display = 'none'; 
-            push(actionsRef, { type: 'shoot', playerId: myId });
-        };
-
-        function updateUI() {
-            const turnBanner = document.getElementById('turnBanner');
-            const playBtn = document.getElementById('playBtn');
-            const liarBtn = document.getElementById('liarBtn');
-            const overlay = document.getElementById('overlayScreen');
-            const overlayText = document.getElementById('overlayText');
-            const shootBtn = document.getElementById('shootBtn');
-            const tableCenter = document.getElementById('tableCenter');
-
-            if (!gameState || !gameState.status) {
-                turnBanner.innerText = "جاري التزامن مع الطاولة...";
-                return;
-            }
-
-            if (!myData.isAlive) {
-                overlay.style.display = 'flex';
-                overlayText.innerHTML = "<h1 style='color:#ef4444; font-size:4rem;'>💀</h1><h2>لقد مت!</h2><p style='color:#aaa;'>شاهد الطاولة وانتظر النهاية...</p>";
-                shootBtn.style.display = 'none'; return;
-            }
-
             if (gameState.status === 'lobby') {
-                overlay.style.display = 'flex'; 
-                overlayText.innerHTML = "<h2>🍻 حانة الكذابين</h2><p style='color:#aaa;'>انتظر الهوست لبدء اللعبة...</p>"; 
-                shootBtn.style.display = 'none';
-                tableCenter.style.display = 'none';
-            } 
+                overlay.style.display = 'flex';
+                if (isHost) {
+                    overlay.innerHTML = `
+                        <h2 style="color:#f59e0b">أنت الهوست 👑</h2>
+                        <p>انتظر دخول الجميع ثم ابدأ</p>
+                        <button class="start-btn" onclick="triggerStart()">بدء اللعبة 🎲</button>
+                    `;
+                } else {
+                    overlay.innerHTML = `<h2>في انتظار الهوست...</h2>`;
+                }
+            }
             else if (gameState.status === 'playing') {
                 overlay.style.display = 'none';
-                tableCenter.style.display = 'flex';
-                
-                const stackCount = (gameState.tableStack || []).length;
-                tableCenter.innerHTML = `
-                    <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 5px;">الورقة المطلوبة</div>
-                    <img src="${CARD_IMAGES[gameState.targetCard]}" class="target-card-img">
-                    <div style="color: #fcd34d; font-weight: bold; margin-top:5px; font-size:0.9rem;">أوراق مقلوبة: ${stackCount}</div>
-                `;
-
-                if (gameState.turnId === myId) {
-                    turnBanner.innerHTML = `دورك الآن! انزل ورقة أو اضغط كاذب`;
-                    turnBanner.style.borderBottomColor = '#10b981';
-                    
-                    // إذا لم يحدد أوراق لا يفتح الزر
-                    playBtn.disabled = selectedCards.length === 0;
-                    liarBtn.disabled = stackCount === 0; 
-                } else {
-                    const actName = allPlayers[gameState.turnId] ? allPlayers[gameState.turnId].name : '...';
-                    turnBanner.innerHTML = `اللعب الآن عند: <span>${actName}</span>`;
-                    turnBanner.style.borderBottomColor = '#333';
-                    playBtn.disabled = true; liarBtn.disabled = true;
-                }
+                updateBtns();
             }
             else if (gameState.status === 'reveal') {
                 overlay.style.display = 'flex';
-                overlayText.innerHTML = `<h2>👀 انظر لشاشة الهوست!</h2><p style='color:#aaa;'>يتم كشف الحقيقة الآن...</p>`;
-                shootBtn.style.display = 'none';
+                // عرض الأوراق المكشوفة
+                const cardsHTML = (gameState.revealedCards || []).map(c => 
+                    `<img src="${CARD_IMGS[c]}" style="width:80px; margin:5px; border-radius:5px;">`
+                ).join('');
+                
+                overlay.innerHTML = `
+                    <h1 style="color:${gameState.isLiar ? '#ef4444' : '#22c55e'}">${gameState.msg}</h1>
+                    <div style="margin:20px">${cardsHTML}</div>
+                `;
             }
             else if (gameState.status === 'roulette') {
                 overlay.style.display = 'flex';
                 if (gameState.victimId === myId) {
-                    overlayText.innerHTML = "<h1 style='color:#ef4444;'>🚨 أنت الضحية!</h1><p>اسحب الزناد!</p>";
-                    shootBtn.style.display = 'block';
+                    overlay.innerHTML = `
+                        <h1 style="color:red">😱 دورك!</h1>
+                        <p>اضغط للنجاة (أو الموت)</p>
+                        <button class="start-btn" style="background:#dc2626" onclick="triggerShoot()">اسحب الزناد 🔫</button>
+                    `;
                 } else {
-                    overlayText.innerHTML = `<h2>😱 روليت الموت</h2><p style='color:#aaa;'>${gameState.victimName} يمسك المسدس الآن...</p>`;
-                    shootBtn.style.display = 'none';
+                    overlay.innerHTML = `<h2>🔫 ${players[gameState.victimId].name} يطلق النار...</h2>`;
                 }
             }
-            else if (gameState.status === 'game_over') {
+            else if (gameState.status === 'winner') {
                 overlay.style.display = 'flex';
-                overlayText.innerHTML = `<h1 style='font-size:4rem;'>🏆</h1><h2 style='color:#fcd34d;'>انتهت اللعبة!</h2><p>الناجي الأخير: ${gameState.winnerName}</p>`;
-                shootBtn.style.display = 'none';
+                overlay.innerHTML = `
+                    <h1 style="color:gold; font-size:4rem">🏆</h1>
+                    <h1>الفائز: ${gameState.winner}</h1>
+                    ${isHost ? '<button class="start-btn" onclick="triggerStart()">لعبة جديدة</button>' : ''}
+                `;
             }
         }
+
+        // 3. إرسال الأوامر (العميل يرسل فقط)
+        window.triggerStart = () => { if(isHost) window.hostStartGame(); };
+        
+        window.playAction = () => {
+            const cards = selectedIndices.map(i => myHand[i]);
+            // إرسال الطلب
+            push(actionsRef, { type: 'play', playerId: myId, cards: cards });
+            
+            // تحديث اليد محلياً فوراً (للمظهر السلس)
+            // ملاحظة: التحديث الحقيقي يأتي من السيرفر لاحقاً، لكن نحذفها محلياً لعدم تكرار الضغط
+            myHand = myHand.filter((_, i) => !selectedIndices.includes(i));
+            selectedIndices = [];
+            renderHand();
+            document.getElementById('controls').style.display = 'none';
+        };
+
+        window.liarAction = () => {
+            if(confirm("متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId });
+        };
+
+        window.triggerShoot = () => {
+            push(actionsRef, { type: 'shoot', playerId: myId });
+            document.getElementById('overlay').innerHTML = `<h2>...</h2>`; // إخفاء الزر
+        };
+
     </script>
 </head>
 <body>
 
-    <div class="turn-banner" id="turnBanner">جاري الاتصال...</div>
-
-    <div class="game-arena" id="gameArena">
-        <div class="table-center" id="tableCenter" style="display:none;"></div>
-        <div id="playersRing"></div>
+    <div class="top-info-bar">
+        <div class="room-pin" id="pinDisplay">PIN: ----</div>
+        <div class="target-display">
+            <span>المطلوب:</span>
+            <div class="target-icon" id="targetIcon">?</div>
+        </div>
     </div>
 
-    <div class="my-hand-area" id="myHandArea"></div>
-
-    <div class="controls">
-        <button class="btn btn-play" id="playBtn" disabled onclick="playCards()">⬇️ انزل الورق</button>
-        <button class="btn btn-liar" id="liarBtn" disabled onclick="callLiar()">🤥 كاااذب!</button>
+    <div class="table-area">
+        <div id="playersRing" style="width:100%; height:100%; position:absolute;"></div>
+        
+        <div class="table-felt">
+            <div class="discard-pile" id="discardPile">
+                </div>
+        </div>
     </div>
 
-    <div class="overlay-screen" id="overlayScreen">
-        <div id="overlayText"></div>
-        <button class="btn-shoot" id="shootBtn" onclick="shoot()">🔫 اسحب الزناد!</button>
+    <div id="controls" class="controls" style="display:none;">
+        <button class="btn btn-play" id="btnPlay" onclick="playAction()">⬇️ انزل</button>
+        <button class="btn btn-liar" id="btnLiar" onclick="liarAction()">🤥 كذاب</button>
+    </div>
+
+    <div class="my-hand" id="myHand">
+        </div>
+
+    <div class="overlay" id="overlay">
+        <h2>جاري الاتصال...</h2>
     </div>
 
 </body>
