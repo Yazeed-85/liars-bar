@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Liar's Bar - Player</title>
     <style>
-        /* إعدادات الأساس ودعم شاشات الجوال بالكامل */
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { 
             background-color: #0a0505; color: white; 
@@ -15,7 +14,7 @@
             touch-action: manipulation;
         }
         
-        /* واجهة فك حظر الصوت الإجبارية */
+        /* واجهة فك حظر الصوت */
         #audioUnlocker {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer;
@@ -27,7 +26,7 @@
         }
         @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 10px #dc2626; } 50% { transform: scale(1.05); box-shadow: 0 0 30px #dc2626; } }
 
-        /* --- 1. الشريط العلوي --- */
+        /* --- الشريط العلوي --- */
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.9); border-bottom: 2px solid #451a03; height: 85px; flex-shrink: 0; z-index: 20; padding-top: env(safe-area-inset-top, 10px);}
         .room-pin { font-family: monospace; color: #888; font-size: 1.1rem; background: #111; padding: 5px 10px; border-radius: 8px; border: 1px solid #333; cursor: pointer;}
         .room-pin:active { color: #fff; border-color: #f59e0b; }
@@ -41,7 +40,7 @@
         .target-img-container img { width: 100%; height: 100%; object-fit: contain; border-radius: 3px; animation: glowTarget 1.5s infinite alternate; border: 1px solid #fff;}
         @keyframes glowTarget { from { filter: drop-shadow(0 0 2px #f59e0b); } to { filter: drop-shadow(0 0 8px #f59e0b); transform: scale(1.05); } }
 
-        /* --- 2. الساحة الوسطى (الطاولة) --- */
+        /* --- الساحة الوسطى --- */
         .arena { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; width: 100%; padding: 20px;}
         .table { width: 60vmin; height: 60vmin; max-width: 400px; max-height: 400px; background: radial-gradient(circle, #065f46 0%, #022c22 100%); border-radius: 50%; border: 12px solid #451a03; box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.7); position: relative; display: flex; justify-content: center; align-items: center; z-index: 1;}
         .discard-pile { position: absolute; width: 60px; height: 85px; top: 50%; left: 50%; transform: translate(-50%, -50%);}
@@ -61,7 +60,7 @@
         .dead .p-name { text-decoration: line-through; color: #666;}
         .flying-card-anim { position: absolute; width: 60px; height: 85px; border-radius: 4px; z-index: 100; transition: all 0.4s ease-out; box-shadow: 0 15px 30px rgba(0,0,0,0.8);}
 
-        /* --- 3. القسم السفلي --- */
+        /* --- القسم السفلي --- */
         .bottom-area { background: #110808; border-top: 2px solid #333; display: flex; flex-direction: column; align-items: center; padding-top: 15px; z-index: 20; height: 210px; flex-shrink: 0; position: relative; padding-bottom: env(safe-area-inset-bottom, 10px);}
         .controls { display: flex; gap: 15px; margin-bottom: 10px; width: 90%; max-width: 500px;}
         .btn { flex: 1; padding: 12px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
@@ -80,7 +79,7 @@
         .spectator-mode h2 { color: #ef4444; font-size: 2rem; margin: 0; text-shadow: 0 0 15px #000;}
         .spectator-mode p { color: #aaa; font-size: 1rem; margin-top: 5px;}
 
-        /* --- 4. شاشات التراكب --- */
+        /* --- شاشات التراكب --- */
         .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(5,5,5,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; backdrop-filter: blur(5px);}
         
         .lobby-box { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #333; width: 90%; max-width: 600px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
@@ -100,9 +99,59 @@
         .reveal-cards img { width: 80px; border-radius: 6px; box-shadow: 0 0 15px rgba(255,255,255,0.2);}
         .truth-glow img { box-shadow: 0 0 40px #10b981; border: 3px solid #10b981;}
         .liar-glow img { box-shadow: 0 0 40px #dc2626; border: 3px solid #dc2626;}
+
+        /* --- زر الإطلاق --- */
+        .shoot-btn {
+            margin-top: 30px;
+            padding: 20px 50px;
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #dc2626, #7f1d1d);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            border-bottom: 6px solid #450a0a;
+            box-shadow: 0 0 30px rgba(220,38,38,0.6);
+            animation: shootPulse 0.8s infinite;
+            width: 90%;
+            max-width: 350px;
+        }
+        .shoot-btn:active { transform: scale(0.95) translateY(4px); border-bottom-width: 0; }
+        @keyframes shootPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(220,38,38,0.5); }
+            50% { box-shadow: 0 0 50px rgba(220,38,38,0.9), 0 0 80px rgba(220,38,38,0.4); }
+        }
+
+        /* انتظار اللاعب الآخر يطلق */
+        .waiting-shoot-box { text-align: center; }
+        .gun-big { font-size: 5rem; animation: gunShake 0.3s infinite; }
+        @keyframes gunShake {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* نتيجة الطلقة */
+        .shot-result-box { text-align: center; animation: resultAppear 0.4s ease-out; }
+        @keyframes resultAppear { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 300;}
         .toast.show { opacity: 1; bottom: 50px;}
+
+        /* مؤشر الأوراق المتبقية */
+        .cards-left-badge {
+            position: absolute;
+            top: -8px; right: -8px;
+            background: #f59e0b;
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 900;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #000;
+            z-index: 5;
+        }
     </style>
 </head>
 <body>
@@ -141,13 +190,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // === 🎵 تهيئة الملفات الصوتية بناءً على المجلد لديك 🎵 ===
+        // === الملفات الصوتية ===
         const audioElements = {};
         const audioFiles = [
             '1A.mp3', '2A.mp3', '3A.mp3', '4A.mp3',
             '1K.mp3', '2K.mp3', '3K.mp3', '4K.mp3',
             '1Q.mp3', '2Q.mp3', '3Q.mp3', '4Q.mp3',
-            'kill.mp3', 'safe-.mp3', 'roulette.mp3'
+            'kill.mp3', 'safe-.mp3'
         ];
 
         const container = document.getElementById('audio-container');
@@ -160,29 +209,26 @@
 
         window.unlockAudio = function() {
             document.getElementById('audioUnlocker').style.display = 'none';
-            // تشغيل صامت لفك الحظر عن كل الملفات في متصفحات الجوال
             Object.values(audioElements).forEach(a => {
                 a.volume = 0;
-                let playPromise = a.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        a.pause();
-                        a.currentTime = 0;
-                        a.volume = 1;
-                    }).catch(error => console.log("Audio unlock error:", error));
+                let p = a.play();
+                if (p !== undefined) {
+                    p.then(() => { a.pause(); a.currentTime = 0; a.volume = 1; }).catch(() => {});
                 }
             });
-        }
+        };
 
         window.playSfx = function(filename) {
-            if(audioElements[filename]) {
+            if (audioElements[filename]) {
                 audioElements[filename].currentTime = 0;
                 audioElements[filename].volume = 1;
-                audioElements[filename].play().catch(()=>{});
+                audioElements[filename].play().catch(() => {});
             }
-        }
-        // ===============================================
+        };
 
+        // =============================================
+        // إعدادات Firebase
+        // =============================================
         const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -192,7 +238,7 @@
         let myName = urlParams.get('name');
         const isHost = urlParams.get('role') === 'host';
 
-        const storageKey = `liars_v17_${pin}_myId`;
+        const storageKey = `liars_v21_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
         if (!myId) { myId = "p_" + Date.now(); localStorage.setItem(storageKey, myId); }
 
@@ -207,7 +253,7 @@
             'A': 'https://deckofcardsapi.com/static/img/AS.png', 
             'K': 'https://deckofcardsapi.com/static/img/KH.png',
             'Q': 'https://deckofcardsapi.com/static/img/QD.png', 
-            'J': 'https://deckofcardsapi.com/static/img/X1.png', 
+            'J': 'https://deckofcardsapi.com/static/img/X1.png',
             'Back': 'https://deckofcardsapi.com/static/img/back.png'
         };
 
@@ -218,14 +264,25 @@
 
         get(myPlayerRef).then((snap) => {
             if (!snap.exists()) {
-                set(myPlayerRef, { name: myName, isAlive: true, hand: [], bulletIndex: Math.floor(Math.random() * 6), currentChamber: 0 });
-            } else { if(snap.val().name) myName = snap.val().name; }
+                set(myPlayerRef, {
+                    name: myName,
+                    isAlive: true,
+                    hand: [],
+                    bulletIndex: Math.floor(Math.random() * 6),
+                    currentChamber: 0
+                });
+            } else {
+                if (snap.val().name) myName = snap.val().name;
+            }
         });
 
         onValue(playersRef, (snap) => {
             players = snap.val() || {};
             const newHand = players[myId]?.hand || [];
-            if (JSON.stringify(newHand) !== JSON.stringify(myHand)) { myHand = newHand; selectedIndices = []; }
+            if (JSON.stringify(newHand) !== JSON.stringify(myHand)) {
+                myHand = newHand;
+                selectedIndices = [];
+            }
             renderTable(); renderHand(); renderUI();
         });
 
@@ -234,166 +291,526 @@
             renderTable(); renderUI(); renderPile();
         });
 
-        // الاستماع للأحداث (صوت الورق والرصاص - بتزامن دقيق)
+        // الاستماع للأحداث
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
             const now = Date.now();
-            if (now - ev.time > 4000) return; // تجاهل الأحداث القديمة جداً
+            if (now - ev.time > 4000) return;
 
             if (ev.type === 'throw') {
                 animateThrow(ev.playerId, ev.count);
-                let countStr = Math.min(ev.count, 4); 
+                let countStr = Math.min(ev.count, 4);
                 let soundFile = `${countStr}${ev.target}.mp3`;
                 playSfx(soundFile);
             }
-            if (ev.type === 'roulette_sound') {
-                playSfx('roulette.mp3'); // صوت الطبول والتوتر
-            }
-            if (ev.type === 'shoot_result') {
-                if (ev.died) playSfx('kill.mp3');
-                else playSfx('safe-.mp3');
-            }
+            // لا يوجد حدث shoot_result هنا - الصوت يعزف عند الضغط على الزر مباشرة
         });
 
+        // =============================================
+        // منطق توزيع الأوراق المحسّن
+        // =============================================
+        /*
+         * القواعد:
+         * - الورقة المستهدفة: A أو K أو Q (تحدد أولاً)
+         * - كل لاعب يجب أن يحصل على ورقة واحدة على الأقل من الورقة المستهدفة
+         * - الجوكر (J): يوجد جوكران فقط (2 ورقة) يُوزَّعان بشكل عشوائي لمن يصيبه الحظ
+         * - كل لاعب يحصل على 5 أوراق إجمالاً (أو أقل إذا نفد المجموع)
+         * - يُضمن عدم حصول شخصين على الجوكر إذا كان اللاعبون قليلين (2 لاعبين: كل واحد جوكر)
+         *
+         * التوزيع الذكي:
+         * 1. تحديد الورقة المستهدفة
+         * 2. ضمان أن كل لاعب يحصل على ورقة مستهدفة واحدة على الأقل
+         * 3. توزيع الجوكر بشكل عشوائي عادل (ليس بالضرورة لكل لاعب)
+         * 4. ملء بقية الأوراق من الوجه العشوائي للباقي
+         */
+        function buildSmartDeck(targetCard, numPlayers) {
+            // الوجوه المتاحة: كل من A, K, Q له 6 نسخ. الجوكر 2 نسخ فقط.
+            const COUNTS = { A: 6, K: 6, Q: 6 };
+            
+            // ابنِ الحزمة مع ضمان كفاية أوراق الهدف
+            let targetCards = [];
+            for (let i = 0; i < COUNTS[targetCard]; i++) targetCards.push(targetCard);
+
+            // الأوراق الأخرى (غير الهدف وغير الجوكر)
+            let otherCards = [];
+            ['A', 'K', 'Q'].forEach(c => {
+                if (c !== targetCard) {
+                    for (let i = 0; i < COUNTS[c]; i++) otherCards.push(c);
+                }
+            });
+
+            // خلط
+            targetCards = shuffle(targetCards);
+            otherCards = shuffle(otherCards);
+
+            return { targetCards, otherCards };
+        }
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function dealHands(aliveIds, targetCard) {
+            const numPlayers = aliveIds.length;
+            const HAND_SIZE = 5;
+
+            let { targetCards, otherCards } = buildSmartDeck(targetCard, numPlayers);
+
+            let hands = {};
+            aliveIds.forEach(id => { hands[id] = []; });
+
+            // الخطوة 1: ضمان ورقة مستهدفة واحدة على الأقل لكل لاعب
+            const shuffledPlayers = shuffle([...aliveIds]);
+            shuffledPlayers.forEach(id => {
+                if (targetCards.length > 0) {
+                    hands[id].push(targetCards.pop());
+                }
+            });
+
+            // الخطوة 2: توزيع الجوكر بشكل عشوائي (2 جوكر فقط)
+            // منطق عادل: كل لاعب فرصة متساوية، لكن لا أكثر من 2 جوكر إجمالاً
+            const jokerPool = ['J', 'J'];
+            const jokerRecipients = shuffle([...aliveIds]).slice(0, 2); // اختيار عشوائي لاثنين
+            jokerRecipients.forEach((id, idx) => {
+                // تأكد أن اليد لم تتجاوز حجمها
+                if (hands[id].length < HAND_SIZE) {
+                    hands[id].push(jokerPool[idx]);
+                }
+            });
+
+            // الخطوة 3: ملء بقية الأوراق (مزيج من المستهدفة والأخرى)
+            let fillPool = shuffle([...targetCards, ...otherCards]);
+            aliveIds.forEach(id => {
+                while (hands[id].length < HAND_SIZE && fillPool.length > 0) {
+                    hands[id].push(fillPool.pop());
+                }
+                // خلط يد كل لاعب
+                hands[id] = shuffle(hands[id]);
+            });
+
+            return hands;
+        }
+
+        // =============================================
+        // منطق الهوست
+        // =============================================
         if (isHost) {
+
             window.hostStartGame = async function() {
                 const aliveIds = Object.keys(players).filter(id => players[id].isAlive).sort();
-                if (aliveIds.length < 2) return alert("باقي لاعب واحد فقط! اللعبة انتهت.");
-
-                // بناء 18 ورقة أساسية (بدون الجوكر)
-                let deckBase = ['A','A','A','A','A','A', 'K','K','K','K','K','K', 'Q','Q','Q','Q','Q','Q'];
-                deckBase.sort(() => Math.random() - 0.5);
-
-                let hands = {};
-                aliveIds.forEach(id => { hands[id] = []; });
-
-                // توزيع ورقتي الجوكر بشكل عادل (مستحيل شخص يأخذ 2 جوكر)
-                let shuffledPlayers = [...aliveIds].sort(() => Math.random() - 0.5);
-                if (shuffledPlayers.length >= 2) {
-                    hands[shuffledPlayers[0]].push('J');
-                    hands[shuffledPlayers[1]].push('J');
+                if (aliveIds.length < 2) {
+                    return alert("باقي لاعب واحد فقط! اللعبة انتهت.");
                 }
 
-                // إكمال باقي أوراق اللاعبين إلى 5
-                aliveIds.forEach(id => {
-                    while (hands[id].length < 5 && deckBase.length > 0) {
-                        hands[id].push(deckBase.pop());
-                    }
-                    hands[id].sort(() => Math.random() - 0.5); // خلط اليد حتى لا يكون الجوكر في البداية
-                });
-
-                let updates = {};
-                aliveIds.forEach(id => { 
-                    updates[`players/${id}/hand`] = hands[id]; 
-                });
-
+                // اختيار الورقة المستهدفة أولاً
                 const target = ['A', 'K', 'Q'][Math.floor(Math.random() * 3)];
+
+                // توزيع الأوراق بشكل ذكي
+                const hands = dealHands(aliveIds, target);
+
                 const firstTurn = aliveIds[Math.floor(Math.random() * aliveIds.length)];
 
-                updates[`gameState`] = { status: 'playing', targetCard: target, turnId: firstTurn, tableStack: [], lastPlay: null, turnOrder: aliveIds };
+                let updates = {};
+                aliveIds.forEach(id => {
+                    updates[`players/${id}/hand`] = hands[id];
+                });
+
+                updates[`gameState`] = {
+                    status: 'playing',
+                    targetCard: target,
+                    turnId: firstTurn,
+                    tableStack: [],
+                    lastPlay: null,
+                    turnOrder: aliveIds,
+                    roundEmptyHands: []
+                };
+
                 await update(ref(db, rootRef), updates);
             };
 
             window.hostStartMatch = async function() {
                 let updates = {};
-                Object.keys(players).forEach(id => { 
+                Object.keys(players).forEach(id => {
                     updates[`players/${id}/isAlive`] = true;
                     updates[`players/${id}/currentChamber`] = 0;
                     updates[`players/${id}/bulletIndex`] = Math.floor(Math.random() * 6);
+                    updates[`players/${id}/hand`] = [];
                 });
                 await update(ref(db, rootRef), updates);
-                setTimeout(() => window.hostStartGame(), 500); 
+                setTimeout(() => window.hostStartGame(), 500);
             };
 
             onChildAdded(actionsRef, async (snap) => {
                 const action = snap.val();
                 const key = snap.key;
-                const aliveIds = gameState.turnOrder.filter(id => players[id].isAlive);
                 
+                // إعادة تحميل اللاعبين من الحالة الحديثة
+                const psSnap = await get(playersRef);
+                const currentPlayers = psSnap.val() || {};
+                const gsSnap = await get(stateRef);
+                const currentGS = gsSnap.val() || gameState;
+
+                const aliveIds = (currentGS.turnOrder || Object.keys(currentPlayers).sort()).filter(id => currentPlayers[id]?.isAlive);
+
                 try {
                     if (action.type === 'play') {
-                        let stack = gameState.tableStack || [];
-                        const visualCards = action.cards.map(() => ({ rot: Math.random()*60 - 30, x: Math.random()*20 - 10, y: Math.random()*20 - 10 }));
-                        
-                        // إرسال الحدث ليسمع الجميع الصوت
-                        const evRef = push(eventsRef, { type: 'throw', playerId: action.playerId, count: action.cards.length, target: gameState.targetCard, time: Date.now() });
+                        let stack = currentGS.tableStack || [];
+                        const visualCards = action.cards.map(() => ({
+                            rot: Math.random() * 60 - 30,
+                            x: Math.random() * 20 - 10,
+                            y: Math.random() * 20 - 10
+                        }));
+
+                        const evRef = push(eventsRef, {
+                            type: 'throw',
+                            playerId: action.playerId,
+                            count: action.cards.length,
+                            target: currentGS.targetCard,
+                            time: Date.now()
+                        });
                         setTimeout(() => remove(evRef), 4000);
 
                         const currIdx = aliveIds.indexOf(action.playerId);
                         const nextId = aliveIds[(currIdx + 1) % aliveIds.length];
 
-                        // فحص الفوز: إذا لعب هذا اللاعب، وكان اللاعب الذي قبله قد لعب آخر ورقة له
-                        if (gameState.lastPlay && gameState.lastPlay.hadEmptyHand) {
-                            await update(stateRef, { status: 'winner', winner: players[gameState.lastPlay.playerId].name });
-                            remove(ref(db, `${rootRef}/actions/${key}`));
-                            return; 
-                        }
+                        const newLastPlay = {
+                            playerId: action.playerId,
+                            cards: action.cards,
+                            hadEmptyHand: (action.handLeft === 0)
+                        };
 
-                        await update(stateRef, { tableStack: stack.concat(visualCards), turnId: nextId, lastPlay: { playerId: action.playerId, cards: action.cards, hadEmptyHand: (action.handLeft === 0) } });
+                        // إذا انتهت يد اللاعب بعد هذه اللعبة → نسجل ذلك
+                        await update(stateRef, {
+                            tableStack: stack.concat(visualCards),
+                            turnId: nextId,
+                            lastPlay: newLastPlay
+                        });
+
+                        // إذا انتهت يد جميع اللاعبين (لا أحد لديه أوراق) → إعادة توزيع تلقائية
+                        if (action.handLeft === 0) {
+                            // تحقق ما إذا كان الجميع قد انتهت أوراقهم
+                            const allHandsEmpty = aliveIds.every(id => {
+                                if (id === action.playerId) return true; // هذا اللاعب انتهت أوراقه
+                                return (currentPlayers[id]?.hand || []).length === 0;
+                            });
+
+                            if (allHandsEmpty) {
+                                // إعادة التوزيع بعد ثانيتين مع إشعار
+                                await update(stateRef, { status: 'redeal_notice', tableStack: [], lastPlay: null });
+                                setTimeout(async () => {
+                                    const newHands = dealHands(aliveIds, currentGS.targetCard);
+                                    let reDealUpdates = {};
+                                    aliveIds.forEach(id => {
+                                        reDealUpdates[`players/${id}/hand`] = newHands[id];
+                                    });
+                                    reDealUpdates[`gameState/status`] = 'playing';
+                                    reDealUpdates[`gameState/tableStack`] = [];
+                                    reDealUpdates[`gameState/lastPlay`] = null;
+                                    reDealUpdates[`gameState/turnId`] = nextId;
+                                    await update(ref(db, rootRef), reDealUpdates);
+                                }, 3000);
+                            }
+                        }
                     }
                     else if (action.type === 'liar') {
-                        const lastMove = gameState.lastPlay;
+                        const lastMove = currentGS.lastPlay;
+                        if (!lastMove) {
+                            remove(ref(db, `${rootRef}/actions/${key}`));
+                            return;
+                        }
+
                         let isLiar = false;
-                        lastMove.cards.forEach(card => { 
-                            if (card !== gameState.targetCard && card !== 'J') isLiar = true; 
+                        (lastMove.cards || []).forEach(card => {
+                            if (card !== currentGS.targetCard && card !== 'J') isLiar = true;
                         });
 
                         let victimId = isLiar ? lastMove.playerId : action.playerId;
-                        
+
                         await update(stateRef, {
-                            status: 'reveal', revealedCards: lastMove.cards, isLiar: isLiar, victimId: victimId,
-                            msg: isLiar ? `كشفناه! ${players[lastMove.playerId].name} كذاب!` : `صادق! ${players[action.playerId].name} تسرّع!`
+                            status: 'reveal',
+                            revealedCards: lastMove.cards,
+                            isLiar: isLiar,
+                            victimId: victimId,
+                            victimName: currentPlayers[victimId]?.name || '؟',
+                            msg: isLiar
+                                ? `كشفناه! ${currentPlayers[lastMove.playerId]?.name} كذاب! 🤥`
+                                : `صادق! ${currentPlayers[action.playerId]?.name} تسرّع! 😱`
                         });
 
-                        setTimeout(() => update(stateRef, { status: 'roulette', victimId: victimId }), 4000);
+                        // بعد 3 ثوانٍ → وضع الإطلاق
+                        setTimeout(() => {
+                            update(stateRef, { status: 'roulette', victimId: victimId, victimName: currentPlayers[victimId]?.name });
+                        }, 3500);
                     }
                     else if (action.type === 'shoot') {
-                        const victim = players[action.playerId];
+                        const victim = currentPlayers[action.playerId];
+                        if (!victim) {
+                            remove(ref(db, `${rootRef}/actions/${key}`));
+                            return;
+                        }
+
                         const died = victim.currentChamber === victim.bulletIndex;
-                        
-                        // 1. الانتقال لحالة التوتر
-                        await update(stateRef, { status: 'roulette_sound_playing', victimName: victim.name });
-                        
-                        // 2. إرسال أمر تشغيل صوت الطبول
-                        const drumEv = push(eventsRef, { type: 'roulette_sound', time: Date.now() });
-                        setTimeout(() => remove(drumEv), 5000);
 
-                        // 3. ننتظر 4 ثواني (مدة الطبول)
+                        // بث حدث الصوت لجميع اللاعبين
+                        const evRef = push(eventsRef, {
+                            type: 'shoot_sound',
+                            died: died,
+                            victimId: action.playerId,
+                            victimName: victim.name,
+                            time: Date.now()
+                        });
+                        setTimeout(() => remove(evRef), 10000);
+
+                        // انتظار انتهاء الصوت ثم إظهار النتيجة
+                        // kill.mp3 وsafe-.mp3 لها توتر + نتيجة، تقريباً 5-7 ثوانٍ
+                        const soundDuration = 6000;
                         setTimeout(async () => {
-                            // 4. إرسال صوت الرصاصة أو الأمان
-                            const resultEv = push(eventsRef, { type: 'shoot_result', died: died, time: Date.now() });
-                            setTimeout(() => remove(resultEv), 5000);
+                            await update(stateRef, {
+                                status: 'shot_result',
+                                died: died,
+                                victimName: victim.name,
+                                victimId: action.playerId
+                            });
 
-                            // 5. ننتظر 1.5 ثانية ليُسمع الصوت بوضوح، ثم تظهر الشاشة!
                             setTimeout(async () => {
-                                await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
-
-                                // 6. ننتظر 4 ثواني لقراءة النتيجة قبل بدء جولة جديدة
-                                setTimeout(async () => {
-                                    if (died) {
-                                        await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
-                                        const survivors = aliveIds.filter(id => id !== action.playerId);
-                                        if (survivors.length === 1) {
-                                            await update(stateRef, { status: 'winner', winner: players[survivors[0]].name });
-                                        } else {
-                                            window.hostStartGame();
-                                        }
+                                if (died) {
+                                    await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
+                                    const survivors = aliveIds.filter(id => id !== action.playerId);
+                                    if (survivors.length <= 1) {
+                                        const winnerName = survivors.length === 1 ? currentPlayers[survivors[0]]?.name : '؟';
+                                        await update(stateRef, { status: 'winner', winner: winnerName });
                                     } else {
-                                        await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
-                                        
-                                        if (gameState.lastPlay && gameState.lastPlay.hadEmptyHand && gameState.lastPlay.playerId === action.playerId && !gameState.isLiar) {
-                                            await update(stateRef, { status: 'winner', winner: victim.name });
-                                        } else {
-                                            window.hostStartGame();
-                                        }
+                                        window.hostStartGame();
                                     }
-                                }, 4000);
-                            }, 1500); 
-                        }, 4000); 
+                                } else {
+                                    const newChamber = (victim.currentChamber || 0) + 1;
+                                    await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: newChamber });
+                                    window.hostStartGame();
+                                }
+                            }, 3000);
+                        }, soundDuration);
                     }
-                } catch(e) { console.error(e); }
+                } catch(e) { console.error("Host action error:", e); }
                 remove(ref(db, `${rootRef}/actions/${key}`));
             });
+        }
+
+        // =============================================
+        // الاستماع لحدث الصوت في جانب العميل
+        // =============================================
+        onChildAdded(eventsRef, (snap) => {
+            const ev = snap.val();
+            const now = Date.now();
+            if (now - ev.time > 5000) return;
+
+            if (ev.type === 'shoot_sound') {
+                // الجميع يسمع الصوت في نفس الوقت عند استلام الحدث
+                if (ev.died) playSfx('kill.mp3');
+                else playSfx('safe-.mp3');
+            }
+        });
+
+        // =============================================
+        // تفاعلات اللاعب
+        // =============================================
+        function updateBtns() {
+            const btnPlay = document.getElementById('btnPlay');
+            const btnLiar = document.getElementById('btnLiar');
+            if (gameState.turnId === myId && players[myId]?.isAlive) {
+                btnPlay.disabled = selectedIndices.length === 0;
+                btnLiar.disabled = (gameState.tableStack || []).length === 0 || !gameState.lastPlay;
+            } else {
+                btnPlay.disabled = true;
+                btnLiar.disabled = true;
+            }
+        }
+
+        window.playAction = () => {
+            if (selectedIndices.length === 0) return;
+            document.getElementById('btnPlay').disabled = true;
+            const cards = selectedIndices.map(i => myHand[i]);
+            myHand = myHand.filter((_, i) => !selectedIndices.includes(i));
+            set(ref(db, `${rootRef}/players/${myId}/hand`), myHand);
+            push(actionsRef, { type: 'play', playerId: myId, cards: cards, handLeft: myHand.length });
+            selectedIndices = [];
+            renderHand();
+        };
+
+        window.callLiar = () => {
+            if (!gameState.lastPlay) return;
+            if (confirm("إذا كان صادقاً ستسحب الزناد أنت! متأكد؟")) {
+                push(actionsRef, { type: 'liar', playerId: myId });
+            }
+        };
+
+        // زر الإطلاق: يظهر للضحية فقط، وعند الضغط يُشغل الصوت للجميع
+        window.triggerShoot = () => {
+            // إخفاء الزر فوراً لمنع الضغط المزدوج
+            const btn = document.getElementById('shootBtn');
+            if (btn) btn.disabled = true;
+
+            // إرسال الإجراء للهوست ليحسب النتيجة ويبث الصوت
+            push(actionsRef, { type: 'shoot', playerId: myId });
+
+            // إظهار شاشة انتظار
+            document.getElementById('overlay').innerHTML = `
+                <div class="result-box waiting-shoot-box">
+                    <div class="gun-big">🔫</div>
+                    <h2 style="margin-top:15px; color:#fcd34d;">لحظة الحسم...</h2>
+                </div>`;
+        };
+
+        window.triggerStart = () => { if (isHost) window.hostStartMatch(); };
+        window.copyPin = () => {
+            navigator.clipboard.writeText(pin);
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        };
+
+        // =============================================
+        // رسم الواجهة
+        // =============================================
+        function renderUI() {
+            if (gameState.targetCard) {
+                document.getElementById('targetDisplay').innerHTML =
+                    `<img src="${CARD_IMGS[gameState.targetCard]}">`;
+            }
+            document.getElementById('pinDisplay').innerText = `PIN: ${pin}`;
+
+            const turnInd = document.getElementById('turnIndicator');
+
+            if (players[myId] && !players[myId].isAlive &&
+                gameState.status !== 'lobby' && gameState.status !== 'winner') {
+                document.getElementById('spectatorMode').style.display = 'flex';
+                turnInd.innerHTML = "👀 وضع المشاهدة";
+            } else {
+                document.getElementById('spectatorMode').style.display = 'none';
+
+                if (gameState.status === 'playing') {
+                    if (gameState.turnId === myId) {
+                        turnInd.innerHTML = `دورك الآن يا <span class="highlight">${myName}</span>!`;
+                        turnInd.className = 'turn-indicator my-turn';
+                    } else {
+                        const tName = players[gameState.turnId]?.name || '...';
+                        turnInd.innerHTML = `اللعب الآن عند: <span class="highlight">${tName}</span>`;
+                        turnInd.className = 'turn-indicator';
+                    }
+                    updateBtns();
+                }
+            }
+
+            const overlay = document.getElementById('overlay');
+
+            if (gameState.status === 'lobby') {
+                overlay.style.display = 'flex';
+                let playersListHTML = Object.values(players).map(p => `
+                    <div class="lobby-player">
+                        <div class="lobby-avatar">👤</div>
+                        <div class="lobby-name">${p.name}</div>
+                    </div>`).join('');
+
+                if (isHost) {
+                    overlay.innerHTML = `
+                        <div class="lobby-box">
+                            <h2 style="color:#aaa">كود الغرفة (اضغط للنسخ):</h2>
+                            <div class="room-code-display" onclick="copyPin()">${pin}</div>
+                            <div class="copy-hint">تم انضمام ${Object.keys(players).length} لاعبين</div>
+                            <div class="players-grid">${playersListHTML}</div>
+                            <button class="start-btn" onclick="triggerStart()">🎲 بدء اللعبة</button>
+                        </div>`;
+                } else {
+                    overlay.innerHTML = `
+                        <div class="lobby-box">
+                            <h2>أهلاً ${myName}</h2>
+                            <p style="color:#aaa;">في انتظار الهوست...</p>
+                            <div class="players-grid">${playersListHTML}</div>
+                        </div>`;
+                }
+            }
+            else if (gameState.status === 'playing') {
+                overlay.style.display = 'none';
+            }
+            else if (gameState.status === 'redeal_notice') {
+                overlay.style.display = 'flex';
+                overlay.innerHTML = `
+                    <div class="result-box">
+                        <h1 style="font-size:3rem">🃏</h1>
+                        <h2 style="color:#f59e0b; margin:15px 0;">انتهت جميع الأوراق!</h2>
+                        <p style="color:#aaa;">جاري إعادة التوزيع...</p>
+                    </div>`;
+            }
+            else if (gameState.status === 'reveal') {
+                overlay.style.display = 'flex';
+                const glow = gameState.isLiar ? 'liar-glow' : 'truth-glow';
+                const cardsHTML = (gameState.revealedCards || []).map(c =>
+                    `<div class="${glow} reveal-card-img">
+                        <img src="${CARD_IMGS[c] || CARD_IMGS['Back']}" style="width:80px; display:block; border-radius:6px;">
+                    </div>`
+                ).join('');
+                overlay.innerHTML = `
+                    <div class="result-box">
+                        <h1 style="color:${gameState.isLiar ? '#ef4444' : '#10b981'}; font-size:1.8rem; margin-bottom:15px;">
+                            ${gameState.msg}
+                        </h1>
+                        <div class="reveal-cards">${cardsHTML}</div>
+                    </div>`;
+            }
+            else if (gameState.status === 'roulette') {
+                overlay.style.display = 'flex';
+                if (gameState.victimId === myId) {
+                    // أنا الضحية: أرى زر الإطلاق
+                    overlay.innerHTML = `
+                        <div class="result-box" style="border-color:#dc2626; text-align:center;">
+                            <h1 style="color:#ef4444; font-size:2rem; margin-bottom:10px;">🔫 دورك يا بطل!</h1>
+                            <p style="color:#aaa; margin-bottom:5px;">اضغط لتسحب الزناد...</p>
+                            <p style="color:#666; font-size:0.85rem; margin-bottom:20px;">(الرصاصة ${(players[myId]?.bulletIndex || 0) + 1} من 6)</p>
+                            <button class="shoot-btn" id="shootBtn" onclick="triggerShoot()">
+                                🔫 إطلاق النار
+                            </button>
+                        </div>`;
+                } else {
+                    // أنا مشاهد: أرى أن فلاناً يمسك المسدس
+                    overlay.innerHTML = `
+                        <div class="result-box" style="text-align:center;">
+                            <div class="gun-big">🔫</div>
+                            <h2 style="margin-top:15px;">${gameState.victimName || players[gameState.victimId]?.name} يمسك المسدس...</h2>
+                            <p style="color:#666; margin-top:10px;">في انتظار الزناد...</p>
+                        </div>`;
+                }
+            }
+            else if (gameState.status === 'shot_result') {
+                overlay.style.display = 'flex';
+                if (gameState.died) {
+                    overlay.innerHTML = `
+                        <div class="result-box shot-result-box">
+                            <h1 style="font-size:5rem">💥</h1>
+                            <h1 style="color:#ef4444; font-size:2rem; margin:10px 0;">مات ${gameState.victimName}</h1>
+                            <p style="color:#aaa;">خرجت الرصاصة الحقيقية!</p>
+                        </div>`;
+                } else {
+                    overlay.innerHTML = `
+                        <div class="result-box shot-result-box">
+                            <h1 style="font-size:4rem">😮‍💨</h1>
+                            <h1 style="color:#10b981; font-size:2rem; margin:10px 0;">نجا ${gameState.victimName}</h1>
+                            <p style="color:#aaa;">الغرفة كانت فارغة!</p>
+                        </div>`;
+                }
+            }
+            else if (gameState.status === 'winner') {
+                overlay.style.display = 'flex';
+                overlay.innerHTML = `
+                    <div class="result-box" style="text-align:center;">
+                        <h1 style="font-size:5rem">🏆</h1>
+                        <h2 style="color:#fcd34d; font-size:2rem; margin:15px 0;">الفائز: ${gameState.winner}</h2>
+                        ${isHost ? `<button class="start-btn" style="margin-top:30px;" onclick="window.hostStartMatch()">🔄 بدء مباراة جديدة للجميع</button>` : '<p style="color:#aaa;">في انتظار الهوست لبدء مباراة جديدة...</p>'}
+                    </div>`;
+            }
         }
 
         function renderTable() {
@@ -405,26 +822,40 @@
             let myIndex = pKeys.indexOf(myId);
             if (myIndex === -1) myIndex = 0;
             const count = pKeys.length;
-            
+
             pKeys.forEach((id, i) => {
                 let relativeI = (i - myIndex + count) % count;
                 let angle = (Math.PI / 2) - (relativeI / count) * (2 * Math.PI);
-                let rx = 35; let ry = 35; 
-                let left = 50 + (Math.cos(angle) * rx); 
-                let top = 50 + (Math.sin(angle) * ry); 
+                let rx = 35; let ry = 35;
+                let left = 50 + (Math.cos(angle) * rx);
+                let top = 50 + (Math.sin(angle) * ry);
 
                 const p = players[id];
                 const isActive = gameState.turnId === id ? 'active-turn' : '';
                 const isDead = !p.isAlive ? 'dead' : '';
                 const isMe = id === myId ? 'is-me' : '';
-                const gunInfo = p.isAlive ? `🔫 ${p.currentChamber}/6` : '💀';
+                const gunInfo = p.isAlive
+                    ? `🔫 ${p.currentChamber || 0}/6`
+                    : '💀';
+
+                // عدد الأوراق في يد اللاعب
+                const handCount = (p.hand || []).length;
+                const badgeHTML = (handCount > 0 && gameState.status === 'playing')
+                    ? `<div class="cards-left-badge">${handCount}</div>`
+                    : '';
 
                 const el = document.createElement('div');
                 el.className = `player-seat ${isActive} ${isDead} ${isMe}`;
                 el.id = `avatar-${id}`;
                 el.style.left = `${left}%`;
                 el.style.top = `${top}%`;
-                el.innerHTML = `<div class="avatar-container"><div class="avatar"><span>👤</span></div></div><div class="p-name">${id === myId ? '(أنت) '+p.name : p.name}</div><div class="p-gun">${gunInfo}</div>`;
+                el.innerHTML = `
+                    <div class="avatar-container">
+                        ${badgeHTML}
+                        <div class="avatar"><span>👤</span></div>
+                    </div>
+                    <div class="p-name">${id === myId ? '(أنت) ' + p.name : p.name}</div>
+                    <div class="p-gun">${gunInfo}</div>`;
                 container.appendChild(el);
             });
         }
@@ -432,27 +863,30 @@
         window.animateThrow = function(playerId, count) {
             const avatar = document.getElementById(`avatar-${playerId}`);
             const tableCenter = document.getElementById('discardPile');
-            if(!avatar || !tableCenter) return;
+            if (!avatar || !tableCenter) return;
             const startRect = avatar.getBoundingClientRect();
             const endRect = tableCenter.getBoundingClientRect();
 
-            for(let i=0; i<count; i++) {
+            for (let i = 0; i < count; i++) {
                 setTimeout(() => {
                     const card = document.createElement('div');
                     card.style.backgroundImage = `url('${CARD_IMGS['Back']}')`;
                     card.style.backgroundSize = 'contain';
                     card.className = 'flying-card-anim';
-                    card.style.left = `${startRect.left + 10}px`; card.style.top = `${startRect.top + 10}px`;
+                    card.style.left = `${startRect.left + 10}px`;
+                    card.style.top = `${startRect.top + 10}px`;
+                    card.style.backgroundRepeat = 'no-repeat';
+                    card.style.backgroundPosition = 'center';
                     document.body.appendChild(card);
                     setTimeout(() => {
-                        card.style.left = `${endRect.left + (Math.random()*10 - 5)}px`;
-                        card.style.top = `${endRect.top + (Math.random()*10 - 5)}px`;
+                        card.style.left = `${endRect.left + (Math.random() * 10 - 5)}px`;
+                        card.style.top = `${endRect.top + (Math.random() * 10 - 5)}px`;
                         card.style.transform = `rotate(${Math.random() * 90 - 45}deg) scale(0.9)`;
                     }, 50);
-                    setTimeout(() => card.remove(), 400);
+                    setTimeout(() => card.remove(), 450);
                 }, i * 150);
             }
-        }
+        };
 
         function renderPile() {
             const pile = document.getElementById('discardPile');
@@ -475,7 +909,7 @@
             if (!myHand || myHand.length === 0) return;
             myHand.forEach((cardCode, i) => {
                 const img = document.createElement('img');
-                img.src = CARD_IMGS[cardCode] || CARD_IMGS['Back']; 
+                img.src = CARD_IMGS[cardCode] || CARD_IMGS['Back'];
                 const div = document.createElement('div');
                 div.className = `hand-card ${selectedIndices.includes(i) ? 'selected' : ''}`;
                 div.onclick = () => toggleSelect(i);
@@ -485,122 +919,15 @@
         }
 
         window.toggleSelect = (i) => {
-            if (gameState.status !== 'playing' || gameState.turnId !== myId || !players[myId].isAlive) return;
-            if (selectedIndices.includes(i)) selectedIndices = selectedIndices.filter(x => x !== i);
-            else selectedIndices.push(i);
+            if (gameState.status !== 'playing' || gameState.turnId !== myId || !players[myId]?.isAlive) return;
+            if (selectedIndices.includes(i)) {
+                selectedIndices = selectedIndices.filter(x => x !== i);
+            } else {
+                selectedIndices.push(i);
+            }
             renderHand(); updateBtns();
         };
 
-        window.playAction = () => {
-            if (selectedIndices.length === 0) return;
-            document.getElementById('btnPlay').disabled = true;
-            const cards = selectedIndices.map(i => myHand[i]);
-            myHand = myHand.filter((_, i) => !selectedIndices.includes(i));
-            set(ref(db, `${rootRef}/players/${myId}/hand`), myHand);
-            push(actionsRef, { type: 'play', playerId: myId, cards: cards, handLeft: myHand.length });
-            selectedIndices = [];
-            renderHand(); 
-        };
-
-        window.callLiar = () => { if(confirm("إذا كان صادقاً ستموت أنت! متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId }); };
-        window.triggerShoot = () => { push(actionsRef, { type: 'shoot', playerId: myId }); document.getElementById('overlay').innerHTML = `<h2>...</h2>`; };
-        window.triggerStart = () => { if(isHost) window.hostStartMatch(); };
-        window.copyPin = () => {
-            navigator.clipboard.writeText(pin);
-            const t = document.getElementById('toast'); t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
-        };
-
-        function updateBtns() {
-            const btnPlay = document.getElementById('btnPlay');
-            const btnLiar = document.getElementById('btnLiar');
-            if (gameState.turnId === myId && players[myId]?.isAlive) {
-                btnPlay.disabled = selectedIndices.length === 0;
-                btnLiar.disabled = (gameState.tableStack || []).length === 0;
-            } else { btnPlay.disabled = true; btnLiar.disabled = true; }
-        }
-
-        function renderUI() {
-            if (gameState.targetCard) document.getElementById('targetDisplay').innerHTML = `<img src="${CARD_IMGS[gameState.targetCard]}">`;
-            document.getElementById('pinDisplay').innerText = `PIN: ${pin}`;
-
-            const turnInd = document.getElementById('turnIndicator');
-            if (players[myId] && !players[myId].isAlive && gameState.status !== 'lobby' && gameState.status !== 'winner') {
-                document.getElementById('spectatorMode').style.display = 'flex';
-                turnInd.innerHTML = "👀 وضع المشاهدة";
-            } else {
-                document.getElementById('spectatorMode').style.display = 'none';
-                if (gameState.status === 'playing') {
-                    if (gameState.turnId === myId) {
-                        turnInd.innerHTML = `دورك الآن يا <span class="highlight">${myName}</span>!`;
-                        turnInd.className = 'turn-indicator my-turn';
-                    } else {
-                        const tName = players[gameState.turnId] ? players[gameState.turnId].name : '...';
-                        turnInd.innerHTML = `اللعب الآن عند: <span class="highlight">${tName}</span>`;
-                        turnInd.className = 'turn-indicator';
-                    }
-                    updateBtns();
-                }
-            }
-
-            const overlay = document.getElementById('overlay');
-            if (gameState.status === 'lobby') {
-                overlay.style.display = 'flex';
-                let playersListHTML = Object.values(players).map(p => `
-                    <div class="lobby-player">
-                        <div class="lobby-avatar">👤</div>
-                        <div class="lobby-name">${p.name}</div>
-                    </div>`).join('');
-
-                if (isHost) {
-                    overlay.innerHTML = `
-                        <div class="lobby-box">
-                            <h2 style="color:#aaa">كود الغرفة (اضغط للنسخ):</h2>
-                            <div class="room-code-display" onclick="copyPin()">${pin}</div>
-                            <div class="players-grid">${playersListHTML}</div>
-                            <button class="start-btn" onclick="triggerStart()">🎲 بدء اللعبة</button>
-                        </div>`;
-                } else {
-                    overlay.innerHTML = `
-                        <div class="lobby-box">
-                            <h2>أهلاً ${myName}</h2>
-                            <p style="color:#aaa;">في انتظار الهوست...</p>
-                            <div class="players-grid">${playersListHTML}</div>
-                        </div>`;
-                }
-            }
-            else if (gameState.status === 'playing') { overlay.style.display = 'none'; }
-            else if (gameState.status === 'reveal') {
-                overlay.style.display = 'flex';
-                const glow = gameState.isLiar ? 'liar-glow' : 'truth-glow';
-                const cardsHTML = (gameState.revealedCards || []).map(c => `<div class="${glow} reveal-card-img"><img src="${CARD_IMGS[c] || CARD_IMGS['Back']}" style="width:100%; display:block; border-radius:6px;"></div>`).join('');
-                overlay.innerHTML = `<div class="result-box"><h1 style="color:${gameState.isLiar ? '#ef4444' : '#10b981'}; font-size:2rem; margin-bottom:20px;">${gameState.msg}</h1><div class="reveal-cards">${cardsHTML}</div></div>`;
-            }
-            else if (gameState.status === 'roulette') {
-                overlay.style.display = 'flex';
-                if (gameState.victimId === myId) {
-                    overlay.innerHTML = `<div class="result-box" style="border-color:#dc2626"><h1 style="color:#ef4444; font-size:2.5rem">دورك يا بطل!</h1><p style="margin:20px 0;">اسحب الزناد...</p><button class="start-btn" style="background:#dc2626;" onclick="triggerShoot()">🔫 إطلاق</button></div>`;
-                } else {
-                    overlay.innerHTML = `<div class="result-box"><h1 style="font-size:4rem">🔫</h1><h2>${players[gameState.victimId]?.name} يمسك المسدس...</h2></div>`;
-                }
-            }
-            else if (gameState.status === 'roulette_sound_playing') {
-                overlay.style.display = 'flex';
-                overlay.innerHTML = `<div class="result-box"><h1 style="font-size:3rem">🥁</h1><h2 style="color:#fcd34d;">لحظة الحسم...</h2></div>`;
-            }
-            else if (gameState.status === 'shot_result') {
-                overlay.style.display = 'flex';
-                if (gameState.died) {
-                    overlay.innerHTML = `<div class="result-box"><h1 style="font-size:5rem">💥</h1><h1 style="color:#ef4444">بـــوووم!</h1><h2>لقد مات ${gameState.victimName}!</h2></div>`;
-                } else {
-                    overlay.innerHTML = `<div class="result-box"><h1 style="font-size:4rem; color:#888">كليييك...</h1><h2 style="color:#10b981">لقد نجا ${gameState.victimName}!</h2></div>`;
-                }
-            }
-            else if (gameState.status === 'winner') {
-                overlay.style.display = 'flex';
-                overlay.innerHTML = `<div class="result-box"><h1 style="font-size:5rem">🏆</h1><h2 style="color:#fcd34d">الفائز: ${gameState.winner}</h2>${isHost ? '<button class="start-btn" style="margin-top:30px;" onclick="window.hostStartMatch()">بدء مباراة جديدة للجميع 🔄</button>' : ''}</div>`;
-            }
-        }
     </script>
 </body>
 </html>
