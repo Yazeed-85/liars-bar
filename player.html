@@ -2,15 +2,33 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Liar's Bar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Liar's Bar - Player</title>
     <style>
-        /* إعدادات الأساس */
+        /* إعدادات الأساس ودعم شاشات الجوال بالكامل */
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0a0505; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; background-image: radial-gradient(circle at center, #1a0505 0%, #000 100%); touch-action: manipulation;}
+        body { 
+            background-color: #0a0505; color: white; 
+            height: 100dvh; /* مهم جداً لمنع غوص الأوراق */
+            overflow: hidden; display: flex; flex-direction: column; 
+            background-image: radial-gradient(circle at center, #1a0505 0%, #000 100%); 
+            touch-action: manipulation;
+        }
         
+        /* واجهة فك حظر الصوت الإجبارية */
+        #audioUnlocker {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer;
+        }
+        .pulse-btn { 
+            font-size: 1.8rem; font-weight: bold; color: #ef4444; 
+            animation: pulse 1.5s infinite; border: 2px solid #dc2626; 
+            padding: 20px 40px; border-radius: 20px; background: rgba(220,38,38,0.1); 
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 10px #dc2626; } 50% { transform: scale(1.05); box-shadow: 0 0 30px #dc2626; } }
+
         /* --- 1. الشريط العلوي --- */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.9); border-bottom: 2px solid #451a03; height: 85px; flex-shrink: 0; z-index: 20;}
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.9); border-bottom: 2px solid #451a03; height: 85px; flex-shrink: 0; z-index: 20; padding-top: env(safe-area-inset-top, 10px);}
         .room-pin { font-family: monospace; color: #888; font-size: 1.1rem; background: #111; padding: 5px 10px; border-radius: 8px; border: 1px solid #333; cursor: pointer;}
         .room-pin:active { color: #fff; border-color: #f59e0b; }
         
@@ -43,21 +61,17 @@
         .dead .p-name { text-decoration: line-through; color: #666;}
         .flying-card-anim { position: absolute; width: 60px; height: 85px; border-radius: 4px; z-index: 100; transition: all 0.4s ease-out; box-shadow: 0 15px 30px rgba(0,0,0,0.8);}
 
-        /* شريط الإعلانات الجديد (Announcer) */
-        .action-announcer { position: absolute; top: 10%; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(15, 23, 42, 0.95); border: 2px solid #3b82f6; color: #fff; padding: 8px 25px; border-radius: 30px; font-size: 1.1rem; font-weight: bold; z-index: 150; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 20px rgba(59, 130, 246, 0.6); white-space: nowrap;}
-        .action-announcer.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        .action-announcer span { color: #fcd34d; font-size: 1.2rem;}
-
         /* --- 3. القسم السفلي --- */
-        .bottom-area { background: #110808; border-top: 2px solid #333; display: flex; flex-direction: column; align-items: center; padding-top: 15px; z-index: 20; height: 210px; flex-shrink: 0; position: relative;}
+        .bottom-area { background: #110808; border-top: 2px solid #333; display: flex; flex-direction: column; align-items: center; padding-top: 15px; z-index: 20; height: 210px; flex-shrink: 0; position: relative; padding-bottom: env(safe-area-inset-bottom, 10px);}
         .controls { display: flex; gap: 15px; margin-bottom: 10px; width: 90%; max-width: 500px;}
         .btn { flex: 1; padding: 12px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
         .btn:active { transform: scale(0.95); }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(100%);}
         .btn-play { background: linear-gradient(135deg, #2563eb, #1e3a8a); border-bottom: 4px solid #172554;}
         .btn-liar { background: linear-gradient(135deg, #dc2626, #7f1d1d); border-bottom: 4px solid #450a0a;}
-        .my-hand { height: 110px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 10px; width: 100%; overflow-x: auto;}
-        .hand-card { min-width: 65px; max-width: 75px; aspect-ratio: 5/7; margin-left: -30px; cursor: pointer; transition: 0.2s; position: relative;}
+        
+        .my-hand { height: 110px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 10px; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;}
+        .hand-card { min-width: 65px; max-width: 75px; aspect-ratio: 5/7; margin-left: -30px; cursor: pointer; transition: 0.2s; position: relative; flex-shrink: 0;}
         .hand-card:first-child { margin-left: 0; }
         .hand-card img { width: 100%; height: 100%; object-fit: contain; border-radius: 5px; box-shadow: -3px 0 10px rgba(0,0,0,0.8); display: block; background: #fff;}
         .hand-card.selected { transform: translateY(-20px); z-index: 50;}
@@ -90,32 +104,82 @@
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 300;}
         .toast.show { opacity: 1; bottom: 50px;}
     </style>
+</head>
+<body>
+
+    <div id="audioUnlocker" onclick="unlockAudio()">
+        <div class="pulse-btn">🎮 انقر هنا لدخول الحانة 🎮</div>
+        <p style="margin-top: 20px; color:#aaa;">(هذا الإجراء ضروري لتفعيل الأصوات)</p>
+    </div>
+
+    <div id="audio-container" style="display:none;"></div>
+
+    <div class="top-bar">
+        <div class="room-pin" id="pinDisplay" onclick="copyPin()">----</div>
+        <div class="turn-indicator" id="turnIndicator">جاري الاتصال...</div>
+        <div class="target-box"><span>المطلوب:</span><div class="target-img-container" id="targetDisplay"></div></div>
+    </div>
+
+    <div class="arena" id="gameArena">
+        <div class="table"><div class="discard-pile" id="discardPile"></div></div>
+        <div id="playersRing" style="width:100%; height:100%; position:absolute;"></div>
+    </div>
+
+    <div class="bottom-area">
+        <div class="spectator-mode" id="spectatorMode"><h2>💀 أنت ميت</h2><p>وضع المشاهدة</p></div>
+        <div class="controls" id="controls">
+            <button class="btn btn-play" id="btnPlay" disabled onclick="playAction()">⬇️ انزل</button>
+            <button class="btn btn-liar" id="btnLiar" disabled onclick="liarAction()">🤥 كذاب</button>
+        </div>
+        <div class="my-hand" id="myHand"></div>
+    </div>
+
+    <div class="overlay" id="overlay"><h2>جاري الاتصال...</h2></div>
+    <div id="toast" class="toast">تم نسخ الكود ✅</div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // === 🎵 إعدادات الأصوات 🎵 ===
-        const AUDIO_MAP = {
-            'A': { 1: 'sounds/1A.mp3', 2: 'sounds/2A.mp3', 3: 'sounds/3A.mp3', 4: 'sounds/4A.mp3' },
-            'K': { 1: 'sounds/1K.mp3', 2: 'sounds/2K.mp3', 3: 'sounds/3K.mp3', 4: 'sounds/4K.mp3' },
-            'Q': { 1: 'sounds/1Q.mp3', 2: 'sounds/2Q.mp3', 3: 'sounds/3Q.mp3', 4: 'sounds/4Q.mp3' }
-        };
+        // === 🎵 تهيئة الملفات الصوتية بناءً على المجلد لديك 🎵 ===
+        const audioElements = {};
+        const audioFiles = [
+            '1A.mp3', '2A.mp3', '3A.mp3', '4A.mp3',
+            '1K.mp3', '2K.mp3', '3K.mp3', '4K.mp3',
+            '1Q.mp3', '2Q.mp3', '3Q.mp3', '4Q.mp3',
+            'kill.mp3', 'safe-.mp3'
+        ];
 
-        const SFX = {
-            kill: 'sounds/kill.mp3',
-            safe: 'sounds/safe.mp3'
-        };
+        const container = document.getElementById('audio-container');
+        audioFiles.forEach(file => {
+            const audio = new Audio(`sounds/${file}`);
+            audio.preload = 'auto';
+            audioElements[file] = audio;
+            container.appendChild(audio);
+        });
 
-        window.playCardSound = function(targetCard, count) {
-            let playCount = count > 4 ? 4 : count;
-            if (AUDIO_MAP[targetCard] && AUDIO_MAP[targetCard][playCount]) {
-                new Audio(AUDIO_MAP[targetCard][playCount]).play().catch(()=>{});
-            }
+        window.unlockAudio = function() {
+            document.getElementById('audioUnlocker').style.display = 'none';
+            // تشغيل صامت لفك الحظر عن كل الملفات في متصفحات الجوال
+            Object.values(audioElements).forEach(a => {
+                a.volume = 0;
+                let playPromise = a.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        a.pause();
+                        a.currentTime = 0;
+                        a.volume = 1;
+                    }).catch(error => console.log("Audio unlock error:", error));
+                }
+            });
         }
 
-        window.playRouletteSound = function(isDeath) {
-            const file = isDeath ? SFX.kill : SFX.safe;
-            new Audio(file).play().catch(()=>{});
+        window.playSfx = function(filename) {
+            if(audioElements[filename]) {
+                audioElements[filename].currentTime = 0;
+                audioElements[filename].volume = 1;
+                audioElements[filename].play().catch(()=>{});
+            }
         }
         // ===============================================
 
@@ -128,7 +192,7 @@
         let myName = urlParams.get('name');
         const isHost = urlParams.get('role') === 'host';
 
-        const storageKey = `liars_v13_${pin}_myId`;
+        const storageKey = `liars_v15_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
         if (!myId) { myId = "p_" + Date.now(); localStorage.setItem(storageKey, myId); }
 
@@ -143,8 +207,7 @@
             'A': 'https://deckofcardsapi.com/static/img/AS.png', 
             'K': 'https://deckofcardsapi.com/static/img/KH.png',
             'Q': 'https://deckofcardsapi.com/static/img/QD.png', 
-            'J': 'https://deckofcardsapi.com/static/img/JC.png',
-            'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
+            'J': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
             'Back': 'https://deckofcardsapi.com/static/img/back.png'
         };
 
@@ -171,76 +234,62 @@
             renderTable(); renderUI(); renderPile();
         });
 
-        // الاستماع للأحداث الصوتية والبصرية ورسائل الإعلان
+        // الاستماع للأحداث (صوت الورق والرصاص)
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
-            // 1. حدث رمي الورق
-            if (ev.type === 'throw' && (Date.now() - ev.time < 3000)) {
+            const now = Date.now();
+            if (now - ev.time > 4000) return; // تجاهل الأحداث القديمة جداً
+
+            if (ev.type === 'throw') {
                 animateThrow(ev.playerId, ev.count);
-                if (gameState.targetCard) playCardSound(gameState.targetCard, ev.count);
-                
-                // --- إظهار نص الإعلان لجميع اللاعبين ---
-                const pName = players[ev.playerId] ? players[ev.playerId].name : 'لاعب';
-                let cardsText = ev.count === 1 ? 'ورقة واحدة' : (ev.count === 2 ? 'ورقتين' : `${ev.count} أوراق`);
-                const announcer = document.getElementById('actionAnnouncer');
-                if (announcer) {
-                    announcer.innerHTML = `📢 <span>${pName}</span> نزل ${cardsText}`;
-                    announcer.classList.add('show');
-                    if (window.announcerTimer) clearTimeout(window.announcerTimer);
-                    window.announcerTimer = setTimeout(() => {
-                        announcer.classList.remove('show');
-                    }, 3000);
-                }
+                // تشغيل الصوت المتوافق مع عدد ونوع الورق
+                let countStr = Math.min(ev.count, 4); // بحد أقصى 4 للأسماء
+                let soundFile = `${countStr}${ev.target}.mp3`;
+                playSfx(soundFile);
             }
-            // 2. حدث الروليت (الموت أو النجاة)
-            if (ev.type === 'roulette_sound' && (Date.now() - ev.time < 8000)) {
-                playRouletteSound(ev.isDeath);
+            if (ev.type === 'shoot_result') {
+                setTimeout(() => {
+                    if (ev.died) playSfx('kill.mp3');
+                    else playSfx('safe-.mp3');
+                }, 2000); // تأخير بسيط للإثارة قبل إعلان النتيجة
             }
         });
 
+        // 🧠 خوارزمية الديك الأصلية (20 ورقة)
+        function generateOfficialDeck() {
+            let deck = [
+                'A','A','A','A','A','A',
+                'K','K','K','K','K','K',
+                'Q','Q','Q','Q','Q','Q',
+                'J','J'
+            ];
+            deck.sort(() => Math.random() - 0.5); // خلط دقيق
+            return deck;
+        }
+
         if (isHost) {
             window.hostStartGame = async function() {
-                const allIds = Object.keys(players);
-                if (allIds.length < 2) return alert("انتظر دخول لاعب آخر!");
+                const aliveIds = Object.keys(players).filter(id => players[id].isAlive).sort();
+                if (aliveIds.length < 2) return alert("باقي لاعب واحد فقط! اللعبة انتهت.");
 
-                const numPlayers = allIds.length;
-                let chosenSize = 6, jokersNeeded = 0, cardsPerType = 0, found = false;
-
-                for (let size of [6, 5, 7, 8, 4]) {
-                    let totalCards = size * numPlayers;
-                    let remainder = totalCards % 3; 
-                    if (remainder <= 2) { 
-                        chosenSize = size; jokersNeeded = remainder; cardsPerType = Math.floor(totalCards / 3); found = true; break;
-                    }
-                }
-                if (!found) { chosenSize = 6; jokersNeeded = 0; cardsPerType = Math.ceil((6 * numPlayers)/3); }
-
-                let deck = [];
-                ['A', 'K', 'Q'].forEach(type => { for(let k=0; k < cardsPerType; k++) deck.push(type); });
-                for(let k=0; k < jokersNeeded; k++) deck.push('J');
-                deck.sort(() => Math.random() - 0.5);
-
+                let deck = generateOfficialDeck();
                 let updates = {};
-                Object.keys(players).forEach(id => { 
-                    if(players[id].isAlive) {
-                        updates[`players/${id}/hand`] = deck.splice(0, chosenSize);
-                    } else {
-                        updates[`players/${id}/hand`] = [];
-                    }
+                
+                // توزيع 5 أوراق عشوائية لكل لاعب حي
+                aliveIds.forEach(id => { 
+                    updates[`players/${id}/hand`] = deck.splice(0, 5); 
                 });
 
                 const target = ['A', 'K', 'Q'][Math.floor(Math.random() * 3)];
-                const aliveIds = Object.keys(players).filter(id => players[id].isAlive).sort();
                 const firstTurn = aliveIds[Math.floor(Math.random() * aliveIds.length)];
 
-                updates[`gameState`] = { status: 'playing', targetCard: target, turnId: firstTurn, tableStack: [], lastPlay: null };
+                updates[`gameState`] = { status: 'playing', targetCard: target, turnId: firstTurn, tableStack: [], lastPlay: null, turnOrder: aliveIds };
                 await update(ref(db, rootRef), updates);
             };
 
             window.hostStartMatch = async function() {
-                const allIds = Object.keys(players);
                 let updates = {};
-                allIds.forEach(id => { 
+                Object.keys(players).forEach(id => { 
                     updates[`players/${id}/isAlive`] = true;
                     updates[`players/${id}/currentChamber`] = 0;
                     updates[`players/${id}/bulletIndex`] = Math.floor(Math.random() * 6);
@@ -252,20 +301,28 @@
             onChildAdded(actionsRef, async (snap) => {
                 const action = snap.val();
                 const key = snap.key;
-                const aliveIds = Object.keys(players).filter(id => players[id].isAlive).sort(); 
+                const aliveIds = gameState.turnOrder.filter(id => players[id].isAlive);
                 
                 try {
                     if (action.type === 'play') {
                         let stack = gameState.tableStack || [];
                         const visualCards = action.cards.map(() => ({ rot: Math.random()*60 - 30, x: Math.random()*20 - 10, y: Math.random()*20 - 10 }));
                         
-                        const evRef = push(eventsRef, { type: 'throw', playerId: action.playerId, count: action.cards.length, time: Date.now() });
+                        // إرسال الحدث ليسمع الجميع الصوت
+                        const evRef = push(eventsRef, { type: 'throw', playerId: action.playerId, count: action.cards.length, target: gameState.targetCard, time: Date.now() });
                         setTimeout(() => remove(evRef), 4000);
 
                         const currIdx = aliveIds.indexOf(action.playerId);
                         const nextId = aliveIds[(currIdx + 1) % aliveIds.length];
 
-                        await update(stateRef, { tableStack: stack.concat(visualCards), turnId: nextId, lastPlay: { playerId: action.playerId, cards: action.cards } });
+                        // فحص الفوز: إذا لعب هذا اللاعب، وكان اللاعب الذي قبله قد لعب آخر ورقة له، فاللاعب السابق فاز!
+                        if (gameState.lastPlay && gameState.lastPlay.hadEmptyHand) {
+                            await update(stateRef, { status: 'winner', winner: players[gameState.lastPlay.playerId].name });
+                            remove(ref(db, `${rootRef}/actions/${key}`));
+                            return; // إنهاء
+                        }
+
+                        await update(stateRef, { tableStack: stack.concat(visualCards), turnId: nextId, lastPlay: { playerId: action.playerId, cards: action.cards, hadEmptyHand: (action.handLeft === 0) } });
                     }
                     else if (action.type === 'liar') {
                         const lastMove = gameState.lastPlay;
@@ -289,25 +346,34 @@
                         
                         await update(stateRef, { status: 'roulette_sound_playing', victimName: victim.name });
                         
-                        const soundEv = push(eventsRef, { type: 'roulette_sound', isDeath: died, time: Date.now() });
-                        setTimeout(() => remove(soundEv), 8000);
+                        // إرسال حدث النتيجة ليشتغل الصوت
+                        const resultEv = push(eventsRef, { type: 'shoot_result', died: died, time: Date.now() });
+                        setTimeout(() => remove(resultEv), 5000);
 
                         setTimeout(async () => {
                             await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
 
-                            if (died) {
-                                await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
-                                const survivors = aliveIds.filter(id => id !== action.playerId);
-                                if (survivors.length === 1) {
-                                    setTimeout(() => update(stateRef, { status: 'winner', winner: players[survivors[0]].name }), 4000);
+                            setTimeout(async () => {
+                                if (died) {
+                                    await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
+                                    const survivors = aliveIds.filter(id => id !== action.playerId);
+                                    if (survivors.length === 1) {
+                                        await update(stateRef, { status: 'winner', winner: players[survivors[0]].name });
+                                    } else {
+                                        window.hostStartGame();
+                                    }
                                 } else {
-                                    setTimeout(() => window.hostStartGame(), 4000);
+                                    await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
+                                    
+                                    // إذا نجا وكان هو المتهَم ظلماً وقد رمى آخر ورقة.. يفوز بالمباراة!
+                                    if (gameState.lastPlay.hadEmptyHand && gameState.lastPlay.playerId === action.playerId && !gameState.isLiar) {
+                                        await update(stateRef, { status: 'winner', winner: victim.name });
+                                    } else {
+                                        window.hostStartGame();
+                                    }
                                 }
-                            } else {
-                                await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
-                                setTimeout(() => window.hostStartGame(), 4000);
-                            }
-                        }, 7000); 
+                            }, 4000);
+                        }, 3000);
                     }
                 } catch(e) { console.error(e); }
                 remove(ref(db, `${rootRef}/actions/${key}`));
@@ -415,16 +481,14 @@
             const cards = selectedIndices.map(i => myHand[i]);
             myHand = myHand.filter((_, i) => !selectedIndices.includes(i));
             set(ref(db, `${rootRef}/players/${myId}/hand`), myHand);
-            push(actionsRef, { type: 'play', playerId: myId, cards: cards });
+            push(actionsRef, { type: 'play', playerId: myId, cards: cards, handLeft: myHand.length });
             selectedIndices = [];
             renderHand(); 
         };
 
         window.liarAction = () => { if(confirm("إذا كان صادقاً ستموت أنت! متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId }); };
         window.triggerShoot = () => { push(actionsRef, { type: 'shoot', playerId: myId }); document.getElementById('overlay').innerHTML = `<h2>...</h2>`; };
-        window.triggerStart = () => { if(isHost) window.hostStartGame(); };
-        window.triggerStartMatch = () => { if(isHost) window.hostStartMatch(); }; 
-        
+        window.triggerStart = () => { if(isHost) window.hostStartMatch(); };
         window.copyPin = () => {
             navigator.clipboard.writeText(pin);
             const t = document.getElementById('toast'); t.classList.add('show');
@@ -477,7 +541,6 @@
                         <div class="lobby-box">
                             <h2 style="color:#aaa">كود الغرفة (اضغط للنسخ):</h2>
                             <div class="room-code-display" onclick="copyPin()">${pin}</div>
-                            <div class="copy-hint">تم انضمام ${Object.keys(players).length} لاعبين</div>
                             <div class="players-grid">${playersListHTML}</div>
                             <button class="start-btn" onclick="triggerStart()">🎲 بدء اللعبة</button>
                         </div>`;
@@ -519,34 +582,9 @@
             }
             else if (gameState.status === 'winner') {
                 overlay.style.display = 'flex';
-                overlay.innerHTML = `<div class="result-box"><h1 style="font-size:5rem">🏆</h1><h2 style="color:#fcd34d">الفائز: ${gameState.winner}</h2>${isHost ? '<button class="start-btn" style="margin-top:30px;" onclick="triggerStartMatch()">بدء مباراة جديدة للجميع 🔄</button>' : ''}</div>`;
+                overlay.innerHTML = `<div class="result-box"><h1 style="font-size:5rem">🏆</h1><h2 style="color:#fcd34d">الفائز: ${gameState.winner}</h2>${isHost ? '<button class="start-btn" style="margin-top:30px;" onclick="window.hostStartMatch()">بدء مباراة جديدة للجميع 🔄</button>' : ''}</div>`;
             }
         }
     </script>
-</head>
-<body>
-    <div class="top-bar">
-        <div class="room-pin" id="pinDisplay" onclick="copyPin()">----</div>
-        <div class="turn-indicator" id="turnIndicator">جاري الاتصال...</div>
-        <div class="target-box"><span>المطلوب:</span><div class="target-img-container" id="targetDisplay"></div></div>
-    </div>
-    
-    <div class="arena" id="gameArena">
-        <div id="actionAnnouncer" class="action-announcer"></div>
-        
-        <div class="table"><div class="discard-pile" id="discardPile"></div></div>
-        <div id="playersRing" style="width:100%; height:100%; position:absolute;"></div>
-    </div>
-    
-    <div class="bottom-area">
-        <div class="spectator-mode" id="spectatorMode"><h2>💀 أنت تشاهد الآن</h2><p>انتظر الجولة القادمة</p></div>
-        <div class="controls" id="controls">
-            <button class="btn btn-play" id="btnPlay" disabled onclick="playAction()">⬇️ انزل</button>
-            <button class="btn btn-liar" id="btnLiar" disabled onclick="liarAction()">🤥 كذاب</button>
-        </div>
-        <div class="my-hand" id="myHand"></div>
-    </div>
-    <div class="overlay" id="overlay"><h2>جاري الاتصال...</h2></div>
-    <div id="toast" class="toast">تم نسخ الكود ✅</div>
 </body>
 </html>
