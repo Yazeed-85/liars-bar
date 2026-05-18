@@ -4,56 +4,299 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Liar's Bar - البوابة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px;}
-        .container { background: rgba(30, 41, 59, 0.95); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(220, 38, 38, 0.2); border: 1px solid #334155; width: 90%; max-width: 400px; }
-        h1 { color: #dc2626; margin-bottom: 10px; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 2px;}
-        p { color: #94a3b8; margin-bottom: 30px; }
-        input { width: 100%; padding: 15px; font-size: 1.2rem; text-align: center; border-radius: 10px; border: 2px solid #475569; background: #0f172a; color: white; margin-bottom: 15px; outline: none; transition: 0.3s;}
-        input:focus { border-color: #dc2626; }
-        .btn { display: block; width: 100%; padding: 15px; margin-bottom: 15px; border: none; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; color: white; transition: transform 0.2s;}
-        .btn:active { transform: scale(0.95); }
-        .btn-host { background: linear-gradient(135deg, #991b1b, #7f1d1d); box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);}
-        .btn-player { background: linear-gradient(135deg, #334155, #1e293b); border: 1px solid #475569;}
+        :root {
+            --red: #dc2626;
+            --red-dark: #7f1d1d;
+            --gold: #f59e0b;
+            --bg: #080510;
+            --surface: rgba(20, 10, 10, 0.92);
+            --border: rgba(220, 38, 38, 0.25);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* خلفية سينمائية */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120,20,20,0.35) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 50% 100%, rgba(80,10,10,0.4) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* نجوم خلفية */
+        .stars {
+            position: fixed; inset: 0;
+            background-image:
+                radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.2) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 50% 70%, rgba(255,255,255,0.15) 0%, transparent 100%),
+                radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.25) 0%, transparent 100%),
+                radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.2) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .container {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            padding: 40px 35px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow:
+                0 0 0 1px var(--border),
+                0 30px 80px rgba(0,0,0,0.8),
+                0 0 60px rgba(220,38,38,0.1) inset;
+            width: 92%;
+            max-width: 420px;
+            position: relative;
+            z-index: 10;
+            animation: fadeUp 0.6s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-area {
+            margin-bottom: 30px;
+        }
+
+        .skull-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 0 12px rgba(220,38,38,0.6));
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(220,38,38,0.4)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(220,38,38,0.8)); }
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--red);
+            font-size: 2.6rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(220,38,38,0.5);
+            line-height: 1;
+        }
+
+        .tagline {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.85rem;
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        /* --- حقول الإدخال --- */
+        .input-group {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .input-label {
+            display: block;
+            text-align: right;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 6px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 1.1rem;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            text-align: center;
+            border-radius: 12px;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+            -webkit-appearance: none;
+        }
+
+        input::placeholder { color: rgba(255,255,255,0.2); font-weight: 400; }
+        input:focus { border-color: var(--red); background: rgba(220,38,38,0.06); box-shadow: 0 0 0 3px rgba(220,38,38,0.15); }
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+        /* --- الأزرار --- */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.15rem;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 900;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(255,255,255,0.1), transparent);
+            pointer-events: none;
+        }
+
+        .btn-host {
+            background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+            box-shadow: 0 4px 20px rgba(220,38,38,0.35), 0 1px 0 rgba(255,255,255,0.1) inset;
+            border-bottom: 3px solid #450a0a;
+        }
+
+        .btn-host:hover { background: linear-gradient(135deg, #dc2626, #991b1b); box-shadow: 0 6px 25px rgba(220,38,38,0.5); }
+
+        .btn-player {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.05) inset;
+            border: 1.5px solid rgba(255,255,255,0.1);
+            border-bottom: 3px solid rgba(0,0,0,0.5);
+        }
+
+        .btn-player:hover { background: linear-gradient(135deg, #334155, #1e293b); border-color: rgba(255,255,255,0.2); }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+
+        .divider span {
+            color: rgba(255,255,255,0.2);
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #dc2626;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
+    <div class="stars"></div>
+
     <div class="container">
-        <h1>LIAR'S BAR</h1>
-        <p>النسخة الكاملة - الكذب أو الموت 🔫</p>
-        
-        <input type="text" id="nameInput" placeholder="اكتب اسمك هنا..." maxlength="10">
-        
-        <button class="btn btn-host" onclick="createRoom()">👑 إنشاء طاولة ولعب</button>
-        
-        <div style="border-top: 1px solid #334155; margin: 20px 0; padding-top: 20px;">
-            <input type="number" id="pinInput" placeholder="كود الطاولة (PIN)">
-            <button class="btn btn-player" onclick="joinRoom()">🃏 دخول طاولة موجودة</button>
+        <div class="logo-area">
+            <span class="skull-icon">💀</span>
+            <h1>LIAR'S BAR</h1>
+            <p class="tagline">اكذب بذكاء أو مت بشرف 🔫</p>
         </div>
+
+        <div class="input-group">
+            <label class="input-label">اسمك في اللعبة</label>
+            <input type="text" id="nameInput" placeholder="اكتب اسمك..." maxlength="12" autocomplete="off">
+        </div>
+
+        <button class="btn btn-host" onclick="createRoom()">👑 إنشاء طاولة جديدة</button>
+
+        <div class="divider"><span>أو انضم لطاولة موجودة</span></div>
+
+        <div class="input-group">
+            <label class="input-label">كود الطاولة (4 أرقام)</label>
+            <input type="number" id="pinInput" placeholder="0000" maxlength="4">
+        </div>
+        <button class="btn btn-player" onclick="joinRoom()">🃏 دخول الطاولة</button>
     </div>
 
+    <div class="toast" id="toast"></div>
+
     <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
         function getName() {
             const name = document.getElementById('nameInput').value.trim();
-            if (!name) { alert("اكتب اسمك يا بطل!"); return null; }
+            if (!name) { showToast("✍️ اكتب اسمك أولاً!"); return null; }
             return name;
         }
+
         function createRoom() {
             const name = getName();
             if (!name) return;
             const pin = Math.floor(1000 + Math.random() * 9000);
             window.location.href = `player.html?pin=${pin}&name=${encodeURIComponent(name)}&role=host`;
         }
+
         function joinRoom() {
             const name = getName();
             if (!name) return;
-            const pin = document.getElementById('pinInput').value;
-            if (pin.length === 4) {
-                window.location.href = `player.html?pin=${pin}&name=${encodeURIComponent(name)}`;
-            } else {
-                alert("الكود خطأ!");
+            const pin = document.getElementById('pinInput').value.trim();
+            if (pin.length !== 4 || isNaN(pin)) {
+                showToast("⚠️ الكود يجب أن يكون 4 أرقام!");
+                return;
             }
+            window.location.href = `player.html?pin=${pin}&name=${encodeURIComponent(name)}`;
         }
+
+        // دعم Enter
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const pin = document.getElementById('pinInput').value.trim();
+                if (pin.length > 0) joinRoom(); else createRoom();
+            }
+        });
     </script>
 </body>
 </html>
