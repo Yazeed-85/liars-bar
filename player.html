@@ -147,7 +147,7 @@
             '1A.mp3', '2A.mp3', '3A.mp3', '4A.mp3',
             '1K.mp3', '2K.mp3', '3K.mp3', '4K.mp3',
             '1Q.mp3', '2Q.mp3', '3Q.mp3', '4Q.mp3',
-            'kill.mp3', 'safe-.mp3'
+            'kill.mp3', 'safe-.mp3', 'roulette.mp3'
         ];
 
         const container = document.getElementById('audio-container');
@@ -192,7 +192,7 @@
         let myName = urlParams.get('name');
         const isHost = urlParams.get('role') === 'host';
 
-        const storageKey = `liars_v16_${pin}_myId`;
+        const storageKey = `liars_v17_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
         if (!myId) { myId = "p_" + Date.now(); localStorage.setItem(storageKey, myId); }
 
@@ -203,7 +203,6 @@
         const actionsRef = ref(db, `${rootRef}/actions`);
         const eventsRef = ref(db, `${rootRef}/events`);
 
-        // تم إصلاح رابط الجوكر (J) ليظهر 100%
         const CARD_IMGS = {
             'A': 'https://deckofcardsapi.com/static/img/AS.png', 
             'K': 'https://deckofcardsapi.com/static/img/KH.png',
@@ -235,7 +234,7 @@
             renderTable(); renderUI(); renderPile();
         });
 
-        // الاستماع للأحداث (صوت الورق والرصاص - بدون تأخير في اللسنر)
+        // الاستماع للأحداث (صوت الورق والرصاص - بتزامن دقيق)
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
             const now = Date.now();
@@ -243,40 +242,49 @@
 
             if (ev.type === 'throw') {
                 animateThrow(ev.playerId, ev.count);
-                let countStr = Math.min(ev.count, 4); // بحد أقصى 4 
+                let countStr = Math.min(ev.count, 4); 
                 let soundFile = `${countStr}${ev.target}.mp3`;
                 playSfx(soundFile);
             }
+            if (ev.type === 'roulette_sound') {
+                playSfx('roulette.mp3'); // صوت الطبول والتوتر
+            }
             if (ev.type === 'shoot_result') {
-                // التشغيل فوراً عند استلام الحدث
                 if (ev.died) playSfx('kill.mp3');
                 else playSfx('safe-.mp3');
             }
         });
-
-        // 🧠 خوارزمية الديك الأصلية (20 ورقة فقط)
-        function generateOfficialDeck() {
-            let deck = [
-                'A','A','A','A','A','A',
-                'K','K','K','K','K','K',
-                'Q','Q','Q','Q','Q','Q',
-                'J','J'
-            ];
-            deck.sort(() => Math.random() - 0.5); // خلط دقيق
-            return deck;
-        }
 
         if (isHost) {
             window.hostStartGame = async function() {
                 const aliveIds = Object.keys(players).filter(id => players[id].isAlive).sort();
                 if (aliveIds.length < 2) return alert("باقي لاعب واحد فقط! اللعبة انتهت.");
 
-                let deck = generateOfficialDeck();
+                // بناء 18 ورقة أساسية (بدون الجوكر)
+                let deckBase = ['A','A','A','A','A','A', 'K','K','K','K','K','K', 'Q','Q','Q','Q','Q','Q'];
+                deckBase.sort(() => Math.random() - 0.5);
+
+                let hands = {};
+                aliveIds.forEach(id => { hands[id] = []; });
+
+                // توزيع ورقتي الجوكر بشكل عادل (مستحيل شخص يأخذ 2 جوكر)
+                let shuffledPlayers = [...aliveIds].sort(() => Math.random() - 0.5);
+                if (shuffledPlayers.length >= 2) {
+                    hands[shuffledPlayers[0]].push('J');
+                    hands[shuffledPlayers[1]].push('J');
+                }
+
+                // إكمال باقي أوراق اللاعبين إلى 5
+                aliveIds.forEach(id => {
+                    while (hands[id].length < 5 && deckBase.length > 0) {
+                        hands[id].push(deckBase.pop());
+                    }
+                    hands[id].sort(() => Math.random() - 0.5); // خلط اليد حتى لا يكون الجوكر في البداية
+                });
+
                 let updates = {};
-                
-                // توزيع 5 أوراق عشوائية لكل لاعب حي
                 aliveIds.forEach(id => { 
-                    updates[`players/${id}/hand`] = deck.splice(0, 5); 
+                    updates[`players/${id}/hand`] = hands[id]; 
                 });
 
                 const target = ['A', 'K', 'Q'][Math.floor(Math.random() * 3)];
@@ -314,11 +322,11 @@
                         const currIdx = aliveIds.indexOf(action.playerId);
                         const nextId = aliveIds[(currIdx + 1) % aliveIds.length];
 
-                        // فحص الفوز: إذا لعب هذا اللاعب، وكان اللاعب الذي قبله قد لعب آخر ورقة له، فاللاعب السابق فاز!
+                        // فحص الفوز: إذا لعب هذا اللاعب، وكان اللاعب الذي قبله قد لعب آخر ورقة له
                         if (gameState.lastPlay && gameState.lastPlay.hadEmptyHand) {
                             await update(stateRef, { status: 'winner', winner: players[gameState.lastPlay.playerId].name });
                             remove(ref(db, `${rootRef}/actions/${key}`));
-                            return; // إنهاء
+                            return; 
                         }
 
                         await update(stateRef, { tableStack: stack.concat(visualCards), turnId: nextId, lastPlay: { playerId: action.playerId, cards: action.cards, hadEmptyHand: (action.handLeft === 0) } });
@@ -343,38 +351,45 @@
                         const victim = players[action.playerId];
                         const died = victim.currentChamber === victim.bulletIndex;
                         
+                        // 1. الانتقال لحالة التوتر
                         await update(stateRef, { status: 'roulette_sound_playing', victimName: victim.name });
+                        
+                        // 2. إرسال أمر تشغيل صوت الطبول
+                        const drumEv = push(eventsRef, { type: 'roulette_sound', time: Date.now() });
+                        setTimeout(() => remove(drumEv), 5000);
 
-                        // ننتظر 2.5 ثانية (فترة حبس الأنفاس والترقب) ثم نرسل حدث الصوت للجميع
+                        // 3. ننتظر 4 ثواني (مدة الطبول)
                         setTimeout(async () => {
-                            // إرسال حدث النتيجة ليشتغل الصوت مباشرة عند استلامه (بدون مؤقت محلي)
+                            // 4. إرسال صوت الرصاصة أو الأمان
                             const resultEv = push(eventsRef, { type: 'shoot_result', died: died, time: Date.now() });
                             setTimeout(() => remove(resultEv), 5000);
 
-                            await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
-
-                            // ننتظر 4 ثواني للمشاهدة ثم نقرر مصير اللعبة
+                            // 5. ننتظر 1.5 ثانية ليُسمع الصوت بوضوح، ثم تظهر الشاشة!
                             setTimeout(async () => {
-                                if (died) {
-                                    await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
-                                    const survivors = aliveIds.filter(id => id !== action.playerId);
-                                    if (survivors.length === 1) {
-                                        await update(stateRef, { status: 'winner', winner: players[survivors[0]].name });
+                                await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
+
+                                // 6. ننتظر 4 ثواني لقراءة النتيجة قبل بدء جولة جديدة
+                                setTimeout(async () => {
+                                    if (died) {
+                                        await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
+                                        const survivors = aliveIds.filter(id => id !== action.playerId);
+                                        if (survivors.length === 1) {
+                                            await update(stateRef, { status: 'winner', winner: players[survivors[0]].name });
+                                        } else {
+                                            window.hostStartGame();
+                                        }
                                     } else {
-                                        window.hostStartGame();
+                                        await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
+                                        
+                                        if (gameState.lastPlay && gameState.lastPlay.hadEmptyHand && gameState.lastPlay.playerId === action.playerId && !gameState.isLiar) {
+                                            await update(stateRef, { status: 'winner', winner: victim.name });
+                                        } else {
+                                            window.hostStartGame();
+                                        }
                                     }
-                                } else {
-                                    await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
-                                    
-                                    // إذا نجا وكان هو المتهَم ظلماً وقد رمى آخر ورقة.. يفوز بالمباراة!
-                                    if (gameState.lastPlay && gameState.lastPlay.hadEmptyHand && gameState.lastPlay.playerId === action.playerId && !gameState.isLiar) {
-                                        await update(stateRef, { status: 'winner', winner: victim.name });
-                                    } else {
-                                        window.hostStartGame();
-                                    }
-                                }
-                            }, 4000);
-                        }, 2500); 
+                                }, 4000);
+                            }, 1500); 
+                        }, 4000); 
                     }
                 } catch(e) { console.error(e); }
                 remove(ref(db, `${rootRef}/actions/${key}`));
