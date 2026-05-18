@@ -9,7 +9,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { 
             background-color: #0a0505; color: white; 
-            height: 100dvh; /* مهم جداً لمنع غوص الأوراق */
+            height: 100dvh; 
             overflow: hidden; display: flex; flex-direction: column; 
             background-image: radial-gradient(circle at center, #1a0505 0%, #000 100%); 
             touch-action: manipulation;
@@ -129,7 +129,7 @@
         <div class="spectator-mode" id="spectatorMode"><h2>💀 أنت ميت</h2><p>وضع المشاهدة</p></div>
         <div class="controls" id="controls">
             <button class="btn btn-play" id="btnPlay" disabled onclick="playAction()">⬇️ انزل</button>
-            <button class="btn btn-liar" id="btnLiar" disabled onclick="liarAction()">🤥 كذاب</button>
+            <button class="btn btn-liar" id="btnLiar" disabled onclick="callLiar()">🤥 كذاب</button>
         </div>
         <div class="my-hand" id="myHand"></div>
     </div>
@@ -192,7 +192,7 @@
         let myName = urlParams.get('name');
         const isHost = urlParams.get('role') === 'host';
 
-        const storageKey = `liars_v15_${pin}_myId`;
+        const storageKey = `liars_v16_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
         if (!myId) { myId = "p_" + Date.now(); localStorage.setItem(storageKey, myId); }
 
@@ -203,11 +203,12 @@
         const actionsRef = ref(db, `${rootRef}/actions`);
         const eventsRef = ref(db, `${rootRef}/events`);
 
+        // تم إصلاح رابط الجوكر (J) ليظهر 100%
         const CARD_IMGS = {
             'A': 'https://deckofcardsapi.com/static/img/AS.png', 
             'K': 'https://deckofcardsapi.com/static/img/KH.png',
             'Q': 'https://deckofcardsapi.com/static/img/QD.png', 
-            'J': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
+            'J': 'https://deckofcardsapi.com/static/img/X1.png', 
             'Back': 'https://deckofcardsapi.com/static/img/back.png'
         };
 
@@ -234,7 +235,7 @@
             renderTable(); renderUI(); renderPile();
         });
 
-        // الاستماع للأحداث (صوت الورق والرصاص)
+        // الاستماع للأحداث (صوت الورق والرصاص - بدون تأخير في اللسنر)
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
             const now = Date.now();
@@ -242,20 +243,18 @@
 
             if (ev.type === 'throw') {
                 animateThrow(ev.playerId, ev.count);
-                // تشغيل الصوت المتوافق مع عدد ونوع الورق
-                let countStr = Math.min(ev.count, 4); // بحد أقصى 4 للأسماء
+                let countStr = Math.min(ev.count, 4); // بحد أقصى 4 
                 let soundFile = `${countStr}${ev.target}.mp3`;
                 playSfx(soundFile);
             }
             if (ev.type === 'shoot_result') {
-                setTimeout(() => {
-                    if (ev.died) playSfx('kill.mp3');
-                    else playSfx('safe-.mp3');
-                }, 2000); // تأخير بسيط للإثارة قبل إعلان النتيجة
+                // التشغيل فوراً عند استلام الحدث
+                if (ev.died) playSfx('kill.mp3');
+                else playSfx('safe-.mp3');
             }
         });
 
-        // 🧠 خوارزمية الديك الأصلية (20 ورقة)
+        // 🧠 خوارزمية الديك الأصلية (20 ورقة فقط)
         function generateOfficialDeck() {
             let deck = [
                 'A','A','A','A','A','A',
@@ -338,21 +337,23 @@
                             msg: isLiar ? `كشفناه! ${players[lastMove.playerId].name} كذاب!` : `صادق! ${players[action.playerId].name} تسرّع!`
                         });
 
-                        setTimeout(() => update(stateRef, { status: 'roulette' }), 5000);
+                        setTimeout(() => update(stateRef, { status: 'roulette', victimId: victimId }), 4000);
                     }
                     else if (action.type === 'shoot') {
                         const victim = players[action.playerId];
                         const died = victim.currentChamber === victim.bulletIndex;
                         
                         await update(stateRef, { status: 'roulette_sound_playing', victimName: victim.name });
-                        
-                        // إرسال حدث النتيجة ليشتغل الصوت
-                        const resultEv = push(eventsRef, { type: 'shoot_result', died: died, time: Date.now() });
-                        setTimeout(() => remove(resultEv), 5000);
 
+                        // ننتظر 2.5 ثانية (فترة حبس الأنفاس والترقب) ثم نرسل حدث الصوت للجميع
                         setTimeout(async () => {
+                            // إرسال حدث النتيجة ليشتغل الصوت مباشرة عند استلامه (بدون مؤقت محلي)
+                            const resultEv = push(eventsRef, { type: 'shoot_result', died: died, time: Date.now() });
+                            setTimeout(() => remove(resultEv), 5000);
+
                             await update(stateRef, { status: 'shot_result', died: died, victimName: victim.name });
 
+                            // ننتظر 4 ثواني للمشاهدة ثم نقرر مصير اللعبة
                             setTimeout(async () => {
                                 if (died) {
                                     await update(ref(db, `${rootRef}/players/${action.playerId}`), { isAlive: false });
@@ -366,14 +367,14 @@
                                     await update(ref(db, `${rootRef}/players/${action.playerId}`), { currentChamber: victim.currentChamber + 1 });
                                     
                                     // إذا نجا وكان هو المتهَم ظلماً وقد رمى آخر ورقة.. يفوز بالمباراة!
-                                    if (gameState.lastPlay.hadEmptyHand && gameState.lastPlay.playerId === action.playerId && !gameState.isLiar) {
+                                    if (gameState.lastPlay && gameState.lastPlay.hadEmptyHand && gameState.lastPlay.playerId === action.playerId && !gameState.isLiar) {
                                         await update(stateRef, { status: 'winner', winner: victim.name });
                                     } else {
                                         window.hostStartGame();
                                     }
                                 }
                             }, 4000);
-                        }, 3000);
+                        }, 2500); 
                     }
                 } catch(e) { console.error(e); }
                 remove(ref(db, `${rootRef}/actions/${key}`));
@@ -486,7 +487,7 @@
             renderHand(); 
         };
 
-        window.liarAction = () => { if(confirm("إذا كان صادقاً ستموت أنت! متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId }); };
+        window.callLiar = () => { if(confirm("إذا كان صادقاً ستموت أنت! متأكد؟")) push(actionsRef, { type: 'liar', playerId: myId }); };
         window.triggerShoot = () => { push(actionsRef, { type: 'shoot', playerId: myId }); document.getElementById('overlay').innerHTML = `<h2>...</h2>`; };
         window.triggerStart = () => { if(isHost) window.hostStartMatch(); };
         window.copyPin = () => {
