@@ -4,49 +4,297 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Liar's Bar - الشاشة المركزية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --red: #dc2626; --red-dark: #7f1d1d;
+            --gold: #f59e0b; --green: #10b981;
+            --bg: #060404; --surface: rgba(15,5,5,0.95);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0505; color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; background-image: radial-gradient(circle at center, #2a1010 0%, #000 100%);}
-        
-        .header { text-align: center; padding: 15px; background: rgba(0,0,0,0.8); border-bottom: 2px solid #dc2626; z-index: 10;}
-        .pin-display { font-size: 2.5rem; font-weight: 900; color: #dc2626; letter-spacing: 5px; text-shadow: 0 0 15px rgba(220, 38, 38, 0.5);}
-        
-        .game-arena { flex: 1; position: relative; width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;}
-        .table-center { position: absolute; width: 350px; height: 250px; background: #064e3b; border-radius: 20px; border: 12px solid #451a03; box-shadow: inset 0 0 50px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1;}
-        
-        .player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; width: 100px; transform: translate(-50%, -50%); z-index: 5; transition: all 0.5s ease;}
-        .avatar { width: 60px; height: 60px; background: #1a1a1a; border-radius: 50%; border: 3px solid #555; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.5); position: relative;}
-        .avatar svg { width: 35px; height: 35px; fill: #aaa; }
-        .p-name { font-weight: bold; background: rgba(0,0,0,0.8); padding: 3px 10px; border-radius: 10px; font-size: 0.9rem; margin-top: -10px; z-index: 2; border: 1px solid #333;}
-        .p-gun { font-size: 0.8rem; color: #f59e0b; margin-top: 2px; font-weight: bold;}
-        .dead .avatar { border-color: #dc2626; opacity: 0.4;}
-        .dead .p-name { text-decoration: line-through; color: #888;}
-        
-        .active-turn .avatar { border-color: #f59e0b; box-shadow: 0 0 25px rgba(245, 158, 11, 0.8); animation: pulseAvatar 1.5s infinite;}
-        @keyframes pulseAvatar { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        .target-card-img { width: 70px; border-radius: 5px; box-shadow: 0 0 20px rgba(255,255,255,0.3); border: 2px solid #fff;}
-        .flying-card { position: absolute; width: 50px; border-radius: 4px; z-index: 100; transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 10px 20px rgba(0,0,0,0.5);}
-        
-        .reveal-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center;}
-        .flip-card { background-color: transparent; width: 120px; height: 170px; perspective: 1000px; margin: 0 10px;}
-        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d;}
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image:
+                radial-gradient(ellipse 100% 50% at 50% 0%, rgba(100,15,15,0.25) 0%, transparent 60%),
+                radial-gradient(ellipse 80% 60% at 50% 100%, rgba(60,10,10,0.3) 0%, transparent 60%);
+        }
+
+        /* الهيدر */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 30px;
+            background: rgba(0,0,0,0.7);
+            border-bottom: 1px solid rgba(220,38,38,0.3);
+            flex-shrink: 0;
+            z-index: 20;
+        }
+
+        .header-logo {
+            font-family: 'Cinzel', serif;
+            color: var(--red);
+            font-size: 1.4rem;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(220,38,38,0.4);
+        }
+
+        .pin-area {
+            text-align: center;
+        }
+        .pin-label { font-size: 0.7rem; color: rgba(255,255,255,0.35); letter-spacing: 2px; text-transform: uppercase; }
+        .pin-code {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--gold);
+            letter-spacing: 8px;
+            text-shadow: 0 0 20px rgba(245,158,11,0.5);
+        }
+
+        .header-status {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.4);
+            text-align: left;
+        }
+        #statusText { display: block; color: var(--green); font-weight: 700; }
+
+        /* الساحة */
+        .game-arena {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* الطاولة الخضراء */
+        .table-center {
+            position: absolute;
+            width: min(320px, 40vw);
+            height: min(220px, 28vw);
+            background: radial-gradient(circle, #065f46 0%, #022c22 100%);
+            border-radius: 30% / 50%;
+            border: 10px solid #3b1a08;
+            box-shadow:
+                inset 0 0 40px rgba(0,0,0,0.7),
+                0 20px 60px rgba(0,0,0,0.8),
+                0 0 0 3px rgba(255,255,255,0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .target-label { font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-bottom: 8px; letter-spacing: 1px; }
+        .target-card-img { width: 60px; border-radius: 5px; border: 2px solid rgba(255,255,255,0.7); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+
+        .stack-counter {
+            margin-top: 12px;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gold);
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+
+        /* اللاعبون */
+        #playersRing {
+            position: absolute;
+            inset: 0;
+        }
+
+        .player-seat {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90px;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            transition: all 0.4s ease;
+        }
+
+        .avatar {
+            width: 64px; height: 64px;
+            background: #1a1015;
+            border-radius: 50%;
+            border: 3px solid #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            transition: all 0.3s;
+        }
+
+        .p-name {
+            font-weight: 700;
+            background: rgba(0,0,0,0.85);
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-top: -8px;
+            z-index: 2;
+            border: 1px solid rgba(255,255,255,0.08);
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .p-gun {
+            font-size: 0.75rem;
+            color: var(--gold);
+            margin-top: 4px;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+
+        /* حالات اللاعب */
+        .dead .avatar { border-color: var(--red); opacity: 0.35; filter: grayscale(80%); }
+        .dead .p-name { text-decoration: line-through; color: #666; }
+        .dead .p-gun { color: var(--red); }
+
+        .active-turn .avatar {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.3), 0 0 30px rgba(245,158,11,0.6), 0 8px 20px rgba(0,0,0,0.6);
+            animation: activePulse 1.5s infinite;
+        }
+        .active-turn .p-name { color: var(--gold); border-color: rgba(245,158,11,0.4); }
+
+        @keyframes activePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        /* الورقة الطائرة */
+        .flying-card {
+            position: fixed;
+            width: 48px;
+            height: 68px;
+            border-radius: 4px;
+            z-index: 100;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.4, 1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        }
+
+        /* شاشة الكشف */
+        .reveal-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        /* بطاقة قابلة للقلب */
+        .flip-card {
+            width: 110px; height: 155px;
+            perspective: 1000px;
+            margin: 0 8px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%; height: 100%;
+            transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
         .flip-card.do-flip .flip-card-inner { transform: rotateY(180deg); }
-        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 15px 30px rgba(0,0,0,0.8);}
-        .flip-card-front { background: url('https://deckofcardsapi.com/static/img/back.png') no-repeat center; background-size: cover; border: 2px solid #fff;}
-        .flip-card-back { transform: rotateY(180deg); background-color: white; display: flex; justify-content: center; align-items: center;}
-        .flip-card-back img { width: 100%; height: 100%; border-radius: 8px;}
-        
-        .truth-glow { box-shadow: 0 0 40px rgba(16, 185, 129, 0.8); border: 4px solid #10b981; animation: glowG 1s infinite alternate;}
-        .liar-glow { box-shadow: 0 0 40px rgba(220, 38, 38, 0.8); border: 4px solid #dc2626; animation: glowR 1s infinite alternate;}
-        @keyframes glowG { from { box-shadow: 0 0 20px #10b981; } to { box-shadow: 0 0 50px #10b981; } }
-        @keyframes glowR { from { box-shadow: 0 0 20px #dc2626; } to { box-shadow: 0 0 50px #dc2626; } }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+        }
+        .flip-card-front {
+            background: url('https://deckofcardsapi.com/static/img/back.png') center/cover;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.7);
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .flip-card-back img { width: 100%; height: 100%; border-radius: 6px; object-fit: contain; }
 
-        .btn { background: #dc2626; color: white; border: none; padding: 15px 30px; font-size: 1.3rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s; z-index: 50;}
+        .truth-glow .flip-card-back { box-shadow: 0 0 0 4px var(--green), 0 0 40px rgba(16,185,129,0.6); }
+        .liar-glow .flip-card-back { box-shadow: 0 0 0 4px var(--red), 0 0 40px rgba(220,38,38,0.6); }
+
+        #revealTitle {
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 35px;
+            line-height: 1.3;
+        }
+        #revealCards { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 5px; }
+
+        /* زر البدء */
+        .start-btn {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.4rem;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 900;
+            border-radius: 14px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 25px;
+            border-bottom: 4px solid #14532d;
+            box-shadow: 0 6px 20px rgba(22,163,74,0.4);
+            transition: 0.2s;
+            z-index: 50;
+        }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(22,163,74,0.5); }
+        .start-btn:active { transform: translateY(2px); border-bottom-width: 1px; }
+
+        /* شاشة الفائز */
+        .winner-effect {
+            font-size: 6rem;
+            animation: bounce 0.5s ease infinite alternate;
+        }
+        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* اللوبي */
+        #lobbyInfo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+        .lobby-hint { font-size: 1.1rem; color: rgba(255,255,255,0.4); }
+        .lobby-count { font-size: 3rem; font-weight: 900; color: var(--gold); }
+        .lobby-label { font-size: 0.9rem; color: rgba(255,255,255,0.35); margin-top: -5px; }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        // تمت إضافة أمر push المفقود لحل مشكلة السيرفر!
         import { getDatabase, ref, set, onValue, update, onChildAdded, remove, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
@@ -56,269 +304,254 @@
         const urlParams = new URLSearchParams(window.location.search);
         const pin = urlParams.get('pin');
         document.getElementById('pinDisplay').innerText = pin;
-        
+
         const stateRef = ref(db, `liars_rooms/${pin}/gameState`);
         const playersRef = ref(db, `liars_rooms/${pin}/players`);
-        const actionsRef = ref(db, `liars_rooms/${pin}/actions`);
         const eventsRef = ref(db, `liars_rooms/${pin}/events`);
 
         const CARD_IMAGES = {
-            'A': 'https://deckofcardsapi.com/static/img/AS.png', 'K': 'https://deckofcardsapi.com/static/img/KH.png',
-            'Q': 'https://deckofcardsapi.com/static/img/QD.png', 'J': 'https://deckofcardsapi.com/static/img/JC.png',
-            'Joker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Card_joker.svg/200px-Card_joker.svg.png',
+            'A': 'https://deckofcardsapi.com/static/img/AS.png',
+            'K': 'https://deckofcardsapi.com/static/img/KH.png',
+            'Q': 'https://deckofcardsapi.com/static/img/QD.png',
+            'J': 'https://deckofcardsapi.com/static/img/JC.png',
             'Back': 'https://deckofcardsapi.com/static/img/back.png'
         };
-        const CARDS = ['A', 'K', 'Q', 'J', 'Joker'];
 
         let players = {};
         let gameState = { status: 'lobby' };
 
-        set(stateRef, { status: 'lobby' });
-
-        onValue(playersRef, (snap) => { players = snap.val() || {}; renderArena(); });
+        onValue(playersRef, (snap) => { players = snap.val() || {}; renderArena(); updateLobbyCount(); });
         onValue(stateRef, (snap) => { gameState = snap.val() || {}; updateHostUI(); });
 
+        // استماع للأحداث البصرية (رمي الورق)
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
-            // تشغيل الأنيميشن فقط إذا كان حديثاً
-            if (ev.type === 'throw' && (Date.now() - ev.time < 3000)) {
+            if (ev.type === 'throw' && (Date.now() - ev.time < 4000)) {
                 animateCardThrow(ev.playerId, ev.count);
             }
         });
 
-        window.startGame = async function() {
-            const pKeys = Object.keys(players);
-            if(pKeys.length < 2) { alert("نحتاج لاعبين على الأقل!"); return; }
-
-            let updates = {};
-            pKeys.forEach(id => {
-                updates[`liars_rooms/${pin}/players/${id}/isAlive`] = true;
-                updates[`liars_rooms/${pin}/players/${id}/bulletIndex`] = Math.floor(Math.random() * 6);
-                updates[`liars_rooms/${pin}/players/${id}/currentChamber`] = 0;
-            });
-            await update(ref(db), updates);
-            startNewRound();
-        };
-
-        async function startNewRound() {
-            // استخدام sort لضمان الترتيب المطابق للجميع
-            const alivePlayers = Object.keys(players).filter(id => players[id].isAlive).sort();
-            if(alivePlayers.length === 1) {
-                set(stateRef, { status: 'game_over', winnerName: players[alivePlayers[0]].name });
-                return;
-            }
-
-            const targetCard = CARDS[Math.floor(Math.random() * 4)]; 
-            const turnId = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
-
-            let updates = {};
-            alivePlayers.forEach(id => {
-                let hand = [];
-                for(let i=0; i<6; i++) hand.push(CARDS[Math.floor(Math.random() * CARDS.length)]);
-                updates[`liars_rooms/${pin}/players/${id}/hand`] = hand;
-            });
-
-            updates[`liars_rooms/${pin}/gameState`] = { status: 'playing', targetCard: targetCard, turnId: turnId, tableStack: [], lastPlay: null };
-            await update(ref(db), updates);
+        function updateLobbyCount() {
+            const count = Object.keys(players).length;
+            const el = document.getElementById('lobbyCount');
+            if (el) el.textContent = count;
+            const info = document.getElementById('statusText');
+            if (info) info.textContent = `${count} لاعبين`;
         }
-
-        function getNextTurnId(currentId) {
-            const alive = Object.keys(players).filter(id => players[id].isAlive).sort();
-            const idx = alive.indexOf(currentId);
-            return alive[(idx + 1) % alive.length];
-        }
-
-        // تم إضافة try/catch لحماية السيرفر من أي تحطم
-        onChildAdded(actionsRef, async (snap) => {
-            const action = snap.val();
-            const actionKey = snap.key;
-            
-            try {
-                if (action.type === 'play') {
-                    let newStack = gameState.tableStack || [];
-                    newStack.push(...action.cards);
-                    
-                    const newEvent = push(eventsRef, { type: 'throw', playerId: action.playerId, count: action.cards.length, time: Date.now() });
-                    setTimeout(() => remove(newEvent), 5000); 
-
-                    await update(stateRef, { tableStack: newStack, lastPlay: { playerId: action.playerId, cards: action.cards }, turnId: getNextTurnId(action.playerId) });
-                } 
-                else if (action.type === 'call_liar') {
-                    const challenger = players[action.playerId].name;
-                    const lastPlayerId = gameState.lastPlay.playerId;
-                    const lastPlayer = players[lastPlayerId].name;
-                    const playedCards = gameState.lastPlay.cards;
-                    
-                    let isLiar = false;
-                    playedCards.forEach(c => { if(c !== gameState.targetCard && c !== 'Joker') isLiar = true; });
-
-                    let victimId = isLiar ? lastPlayerId : action.playerId;
-                    let victimName = isLiar ? lastPlayer : challenger;
-
-                    await update(stateRef, { 
-                        status: 'reveal', victimId: victimId, victimName: victimName, 
-                        revealedCards: playedCards, isLiar: isLiar, accuser: challenger, accused: lastPlayer
-                    });
-
-                    setTimeout(async () => { await update(stateRef, { status: 'roulette' }); }, 6000);
-                }
-                else if (action.type === 'shoot') {
-                    const vId = action.playerId;
-                    const vData = players[vId];
-                    
-                    if (vData.currentChamber === vData.bulletIndex) {
-                        await update(ref(db, `liars_rooms/${pin}/players/${vId}`), { isAlive: false });
-                    } else {
-                        await update(ref(db, `liars_rooms/${pin}/players/${vId}`), { currentChamber: vData.currentChamber + 1 });
-                    }
-                    setTimeout(() => { startNewRound(); }, 4000);
-                }
-            } catch (e) {
-                console.error("Server Error:", e);
-            } finally {
-                remove(ref(db, `liars_rooms/${pin}/actions/${actionKey}`));
-            }
-        });
 
         window.renderArena = function() {
             const ring = document.getElementById('playersRing');
             ring.innerHTML = '';
-            // ترتيب صارم لتوحيد الشاشات
-            const pKeys = Object.keys(players).sort(); 
+            const pKeys = Object.keys(players).sort();
             const total = pKeys.length;
-            
+            if (total === 0) return;
+
+            // مواضع صحيحة حول الطاولة البيضاوية
             pKeys.forEach((id, index) => {
                 const p = players[id];
                 const isDead = p.isAlive === false ? 'dead' : '';
                 const isActive = gameState.turnId === id ? 'active-turn' : '';
                 const chambers = p.currentChamber !== undefined ? p.currentChamber : 0;
-                
-                const angle = (index / total) * (2 * Math.PI) - (Math.PI / 2); 
-                const radiusX = 40; 
-                const radiusY = 38; 
+
+                const angle = (index / total) * (2 * Math.PI) - (Math.PI / 2);
+                const radiusX = 42;
+                const radiusY = 40;
                 const left = 50 + radiusX * Math.cos(angle);
                 const top = 50 + radiusY * Math.sin(angle);
 
-                ring.innerHTML += `
-                    <div class="player-seat ${isActive} ${isDead}" id="seat-${id}" style="left: ${left}%; top: ${top}%;">
-                        <div class="avatar"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-                        <div class="p-name">${p.name}</div>
-                        <div class="p-gun">🔫 ${chambers}/6</div>
-                    </div>
+                const avatars = ['🐺', '🦊', '🐻', '🐱', '🦁', '🐸'];
+                const avi = avatars[Object.keys(players).sort().indexOf(id) % avatars.length];
+
+                const el = document.createElement('div');
+                el.className = `player-seat ${isActive} ${isDead}`;
+                el.id = `host-seat-${id}`;
+                el.style.left = `${left}%`;
+                el.style.top = `${top}%`;
+                el.innerHTML = `
+                    <div class="avatar"><span>${avi}</span></div>
+                    <div class="p-name">${p.name}</div>
+                    <div class="p-gun">${p.isAlive === false ? '💀' : `🔫 ${chambers}/6`}</div>
                 `;
+                ring.appendChild(el);
             });
-        }
+        };
 
         function animateCardThrow(playerId, count) {
-            const seat = document.getElementById(`seat-${playerId}`);
+            const seat = document.getElementById(`host-seat-${playerId}`);
             const table = document.getElementById('tableCenter');
-            if(!seat || !table) return;
+            if (!seat || !table) return;
 
             const seatRect = seat.getBoundingClientRect();
             const tableRect = table.getBoundingClientRect();
+            const tx = tableRect.left + tableRect.width / 2 - 24;
+            const ty = tableRect.top + tableRect.height / 2 - 34;
 
-            for(let i=0; i<count; i++) {
+            for (let i = 0; i < Math.min(count, 3); i++) {
                 setTimeout(() => {
                     const card = document.createElement('img');
                     card.src = CARD_IMAGES['Back'];
                     card.className = 'flying-card';
-                    card.style.left = `${seatRect.left + 20}px`;
-                    card.style.top = `${seatRect.top + 20}px`;
-                    card.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    card.style.left = `${seatRect.left + 15}px`;
+                    card.style.top = `${seatRect.top + 10}px`;
+                    card.style.transform = `rotate(${Math.random() * 60 - 30}deg)`;
                     document.body.appendChild(card);
 
-                    setTimeout(() => {
-                        card.style.left = `${tableRect.left + (tableRect.width/2) - 25 + (Math.random()*40 - 20)}px`;
-                        card.style.top = `${tableRect.top + (tableRect.height/2) - 35 + (Math.random()*40 - 20)}px`;
-                        card.style.transform = `rotate(${Math.random() * 60 - 30}deg)`;
-                    }, 50);
-
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            card.style.left = `${tx + (Math.random() * 30 - 15)}px`;
+                            card.style.top = `${ty + (Math.random() * 30 - 15)}px`;
+                            card.style.transform = `rotate(${Math.random() * 40 - 20}deg)`;
+                            card.style.opacity = '0.8';
+                        });
+                    });
                     setTimeout(() => card.remove(), 600);
-                }, i * 200); 
+                }, i * 180);
             }
         }
 
         function updateHostUI() {
             renderArena();
             const startBtn = document.getElementById('startBtn');
+            const tableCenter = document.getElementById('tableCenter');
+            const revealScreen = document.getElementById('revealScreen');
             const targetEl = document.getElementById('targetCard');
             const stackEl = document.getElementById('stackCount');
-            const revealScreen = document.getElementById('revealScreen');
-            const tableCenter = document.getElementById('tableCenter');
+            const lobbyInfo = document.getElementById('lobbyInfo');
+            const statusText = document.getElementById('statusText');
 
             if (gameState.status === 'lobby') {
-                startBtn.style.display = 'block'; tableCenter.style.display = 'none'; revealScreen.style.display = 'none';
-            } 
+                startBtn.style.display = 'block';
+                tableCenter.style.display = 'none';
+                revealScreen.style.display = 'none';
+                lobbyInfo.style.display = 'block';
+                if (statusText) statusText.textContent = `${Object.keys(players).length} لاعبين`;
+            }
             else if (gameState.status === 'playing') {
-                startBtn.style.display = 'none'; tableCenter.style.display = 'flex'; revealScreen.style.display = 'none';
-                targetEl.innerHTML = `<img src="${CARD_IMAGES[gameState.targetCard]}" class="target-card-img">`;
-                stackEl.innerText = `أوراق مقلوبة: ${(gameState.tableStack || []).length}`;
+                startBtn.style.display = 'none';
+                tableCenter.style.display = 'flex';
+                revealScreen.style.display = 'none';
+                lobbyInfo.style.display = 'none';
+
+                if (gameState.targetCard) {
+                    targetEl.innerHTML = `<img src="${CARD_IMAGES[gameState.targetCard] || CARD_IMAGES['Back']}" class="target-card-img">`;
+                }
+                const stackCount = (gameState.tableStack || []).length;
+                stackEl.innerHTML = `🃏 أوراق على الطاولة: <strong>${stackCount}</strong>`;
+
+                const currentPlayer = players[gameState.turnId];
+                if (statusText) statusText.textContent = currentPlayer ? `دور: ${currentPlayer.name}` : '...';
             }
             else if (gameState.status === 'reveal') {
                 revealScreen.style.display = 'flex';
-                
+                lobbyInfo.style.display = 'none';
+
+                const glow = gameState.isLiar ? 'liar-glow' : 'truth-glow';
                 let cardsHTML = '';
-                const glowClass = gameState.isLiar ? 'liar-glow' : 'truth-glow';
-                
-                gameState.revealedCards.forEach(c => {
+
+                (gameState.revealedCards || []).forEach(c => {
                     cardsHTML += `
-                        <div class="flip-card">
+                        <div class="flip-card ${glow}">
                             <div class="flip-card-inner">
                                 <div class="flip-card-front"></div>
-                                <div class="flip-card-back ${glowClass}"><img src="${CARD_IMAGES[c]}"></div>
+                                <div class="flip-card-back"><img src="${CARD_IMAGES[c] || CARD_IMAGES['Back']}"></div>
                             </div>
                         </div>`;
                 });
 
                 document.getElementById('revealCards').innerHTML = cardsHTML;
-                
+                document.getElementById('revealTitle').innerHTML = 'لحظة الحقيقة...';
+
                 setTimeout(() => {
                     document.querySelectorAll('.flip-card').forEach(el => el.classList.add('do-flip'));
                     setTimeout(() => {
                         const title = document.getElementById('revealTitle');
-                        if(gameState.isLiar) {
-                            title.innerHTML = `<span style="color:#dc2626">كـــــاذب! 🤥</span><br><span style="font-size:1.2rem; color:#ccc;">${gameState.accused} غشاش وسيلعب الروليت!</span>`;
+                        if (gameState.isLiar) {
+                            title.innerHTML = `<span style="color:var(--red)">كـاذب! 🤥</span><br><small style="font-size:1.1rem;color:#ccc;">${gameState.accused} غشاش وسيلعب الروليت!</small>`;
                         } else {
-                            title.innerHTML = `<span style="color:#10b981">صـــــادق! 😇</span><br><span style="font-size:1.2rem; color:#ccc;">اتهام باطل! ${gameState.accuser} سيلعب الروليت!</span>`;
+                            title.innerHTML = `<span style="color:var(--green)">صادق! 😇</span><br><small style="font-size:1.1rem;color:#ccc;">اتهام خاطئ! ${gameState.accuser} سيلعب الروليت!</small>`;
                         }
-                    }, 800);
-                }, 1000);
-                document.getElementById('revealTitle').innerHTML = "لحظة الحقيقة...";
+                    }, 900);
+                }, 800);
             }
-            else if (gameState.status === 'roulette') {
+            else if (gameState.status === 'roulette' || gameState.status === 'roulette_sound_playing') {
                 revealScreen.style.display = 'flex';
-                document.getElementById('revealCards').innerHTML = `<h1 style="font-size:5rem; margin:0;">🔫</h1>`;
-                document.getElementById('revealTitle').innerHTML = `<span style="color:#dc2626">${gameState.victimName}</span><br><span style="font-size:1.5rem; color:#aaa;">يسحب الزناد...</span>`;
+                lobbyInfo.style.display = 'none';
+                document.getElementById('revealCards').innerHTML = `<div style="font-size:7rem; animation: bounce 0.4s infinite alternate;">🔫</div>`;
+                document.getElementById('revealTitle').innerHTML = `<span style="color:var(--red)">${gameState.victimName || '...'}</span><br><small style="font-size:1.2rem;color:#aaa;">يسحب الزناد... 🥁</small>`;
             }
-            else if (gameState.status === 'game_over') {
+            else if (gameState.status === 'shot_result') {
                 revealScreen.style.display = 'flex';
-                document.getElementById('revealCards').innerHTML = `<h1 style="font-size:5rem; margin:0;">🏆</h1>`;
-                document.getElementById('revealTitle').innerHTML = `الفائز: <span style="color:#fcd34d">${gameState.winnerName}</span>`;
-                startBtn.style.display = 'block'; startBtn.innerText = "بدء لعبة جديدة"; startBtn.style.position = 'absolute'; startBtn.style.bottom = '50px';
+                if (gameState.died) {
+                    document.getElementById('revealCards').innerHTML = `<div style="font-size:7rem">💥</div>`;
+                    document.getElementById('revealTitle').innerHTML = `<span style="color:var(--red)">بـوووم!</span><br><small style="font-size:1.2rem;color:#ccc;">لقد مات ${gameState.victimName}!</small>`;
+                } else {
+                    document.getElementById('revealCards').innerHTML = `<div style="font-size:5rem; opacity:0.5">💨</div>`;
+                    document.getElementById('revealTitle').innerHTML = `<span style="color:#aaa; font-size:2rem">كـليك...</span><br><small style="font-size:1.2rem;color:var(--green)">نجا ${gameState.victimName}! 😅</small>`;
+                }
+            }
+            else if (gameState.status === 'winner') {
+                revealScreen.style.display = 'flex';
+                startBtn.style.display = 'block';
+                startBtn.textContent = '🔄 مباراة جديدة';
+                startBtn.style.position = 'absolute';
+                startBtn.style.bottom = '30px';
+                document.getElementById('revealCards').innerHTML = `<div class="winner-effect">🏆</div>`;
+                document.getElementById('revealTitle').innerHTML = `الفائز<br><span style="color:var(--gold);font-size:3rem">${gameState.winner}</span>`;
             }
         }
     </script>
 </head>
 <body>
     <div class="header">
-        <div style="font-size: 1rem; color: #aaa;">كود طاولة الحانة</div>
-        <div class="pin-display" id="pinDisplay">----</div>
+        <div class="header-logo">☠ LIAR'S BAR</div>
+        <div class="pin-area">
+            <div class="pin-label">كود الطاولة</div>
+            <div class="pin-code" id="pinDisplay">----</div>
+        </div>
+        <div class="header-status">
+            <span id="statusText">في انتظار اللاعبين</span>
+        </div>
     </div>
 
     <div class="game-arena" id="gameArena">
+        <!-- الطاولة المركزية -->
         <div class="table-center" id="tableCenter" style="display:none;">
-            <div style="color: #aaa; margin-bottom: 10px;">الورقة المطلوبة</div>
+            <div class="target-label">▲ الورقة المطلوبة ▲</div>
             <div id="targetCard"></div>
-            <div id="stackCount" style="color: #fcd34d; font-weight: bold; margin-top: 15px; font-size: 1.2rem;"></div>
+            <div class="stack-counter" id="stackCount">🃏 أوراق على الطاولة: 0</div>
         </div>
-        <div id="playersRing"></div>
+
+        <!-- اللوبي -->
+        <div id="lobbyInfo" style="text-align:center;">
+            <div class="lobby-hint">في انتظار اللاعبين...</div>
+            <div class="lobby-count" id="lobbyCount">0</div>
+            <div class="lobby-label">لاعبين انضموا</div>
+        </div>
+
+        <div id="playersRing" style="position:absolute;inset:0;"></div>
     </div>
 
     <div class="reveal-screen" id="revealScreen">
-        <h1 id="revealTitle" style="margin-bottom: 40px; font-size: 3rem; text-align: center;">لحظة الحقيقة...</h1>
-        <div id="revealCards" style="display: flex; justify-content: center;"></div>
+        <h1 id="revealTitle" style="margin-bottom:30px;">لحظة الحقيقة...</h1>
+        <div id="revealCards" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;"></div>
     </div>
 
-    <button id="startBtn" class="btn" style="position: absolute; bottom: 20px;" onclick="startGame()">🎲 بدء اللعب</button>
+    <button id="startBtn" class="start-btn" onclick="startGame()">🎲 بدء اللعب</button>
+
+    <script type="module">
+        // زر البدء يرسل أمر للهوست في player.html
+        import { getDatabase, ref, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyB5CobIKfYdAz8jaabJpMQrGoqS9Ton28Y", authDomain: "buttons-f3501.firebaseapp.com", databaseURL: "https://buttons-f3501-default-rtdb.firebaseio.com", projectId: "buttons-f3501" };
+        const app2 = initializeApp(firebaseConfig, 'host-app2');
+        const db2 = getDatabase(app2);
+        const pin = new URLSearchParams(window.location.search).get('pin');
+
+        window.startGame = function() {
+            // يُرسل أمر للـ host player عبر Firebase ليبدأ اللعبة
+            update(ref(db2, `liars_rooms/${pin}/hostCommands`), { startMatch: Date.now() });
+        };
+    </script>
 </body>
 </html>
