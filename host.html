@@ -26,7 +26,6 @@
                 radial-gradient(ellipse 80% 60% at 50% 100%, rgba(60,10,10,0.3) 0%, transparent 60%);
         }
 
-        /* الهيدر */
         .header {
             display: flex;
             justify-content: space-between;
@@ -46,9 +45,7 @@
             text-shadow: 0 0 20px rgba(220,38,38,0.4);
         }
 
-        .pin-area {
-            text-align: center;
-        }
+        .pin-area { text-align: center; }
         .pin-label { font-size: 0.7rem; color: rgba(255,255,255,0.35); letter-spacing: 2px; text-transform: uppercase; }
         .pin-code {
             font-family: 'Cinzel', serif;
@@ -59,14 +56,9 @@
             text-shadow: 0 0 20px rgba(245,158,11,0.5);
         }
 
-        .header-status {
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.4);
-            text-align: left;
-        }
+        .header-status { font-size: 0.85rem; color: rgba(255,255,255,0.4); text-align: left; }
         #statusText { display: block; color: var(--green); font-weight: 700; }
 
-        /* الساحة */
         .game-arena {
             flex: 1;
             position: relative;
@@ -77,7 +69,6 @@
             overflow: hidden;
         }
 
-        /* الطاولة الخضراء */
         .table-center {
             position: absolute;
             width: min(320px, 40vw);
@@ -110,11 +101,7 @@
             border: 1px solid rgba(245,158,11,0.3);
         }
 
-        /* اللاعبون */
-        #playersRing {
-            position: absolute;
-            inset: 0;
-        }
+        #playersRing { position: absolute; inset: 0; }
 
         .player-seat {
             position: absolute;
@@ -165,7 +152,6 @@
             border: 1px solid rgba(245,158,11,0.2);
         }
 
-        /* حالات اللاعب */
         .dead .avatar { border-color: var(--red); opacity: 0.35; filter: grayscale(80%); }
         .dead .p-name { text-decoration: line-through; color: #666; }
         .dead .p-gun { color: var(--red); }
@@ -182,7 +168,6 @@
             50% { transform: scale(1.08); }
         }
 
-        /* الورقة الطائرة */
         .flying-card {
             position: fixed;
             width: 48px;
@@ -194,7 +179,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.6);
         }
 
-        /* شاشة الكشف */
         .reveal-screen {
             position: fixed;
             inset: 0;
@@ -207,7 +191,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* بطاقة قابلة للقلب */
         .flip-card {
             width: 110px; height: 155px;
             perspective: 1000px;
@@ -252,7 +235,6 @@
         }
         #revealCards { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 5px; }
 
-        /* زر البدء */
         .start-btn {
             background: linear-gradient(135deg, #16a34a, #15803d);
             color: white;
@@ -273,14 +255,12 @@
         .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(22,163,74,0.5); }
         .start-btn:active { transform: translateY(2px); border-bottom-width: 1px; }
 
-        /* شاشة الفائز */
         .winner-effect {
             font-size: 6rem;
             animation: bounce 0.5s ease infinite alternate;
         }
         @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
 
-        /* اللوبي */
         #lobbyInfo {
             position: absolute;
             top: 50%;
@@ -313,7 +293,7 @@
             'A': 'https://deckofcardsapi.com/static/img/AS.png',
             'K': 'https://deckofcardsapi.com/static/img/KH.png',
             'Q': 'https://deckofcardsapi.com/static/img/QD.png',
-            'J': 'https://deckofcardsapi.com/static/img/JC.png',
+            'J': 'https://deckofcardsapi.com/static/img/X1.png',
             'Back': 'https://deckofcardsapi.com/static/img/back.png'
         };
 
@@ -323,7 +303,6 @@
         onValue(playersRef, (snap) => { players = snap.val() || {}; renderArena(); updateLobbyCount(); });
         onValue(stateRef, (snap) => { gameState = snap.val() || {}; updateHostUI(); });
 
-        // استماع للأحداث البصرية (رمي الورق)
         onChildAdded(eventsRef, (snap) => {
             const ev = snap.val();
             if (ev.type === 'throw' && (Date.now() - ev.time < 4000)) {
@@ -346,7 +325,6 @@
             const total = pKeys.length;
             if (total === 0) return;
 
-            // مواضع صحيحة حول الطاولة البيضاوية
             pKeys.forEach((id, index) => {
                 const p = players[id];
                 const isDead = p.isAlive === false ? 'dead' : '';
@@ -473,7 +451,8 @@
                     }, 900);
                 }, 800);
             }
-            else if (gameState.status === 'roulette' || gameState.status === 'roulette_sound_playing') {
+            else if (gameState.status === 'roulette') {
+                /* تم حذف roulette_sound_playing - الروليت الآن حالة واحدة فقط */
                 revealScreen.style.display = 'flex';
                 lobbyInfo.style.display = 'none';
                 document.getElementById('revealCards').innerHTML = `<div style="font-size:7rem; animation: bounce 0.4s infinite alternate;">🔫</div>`;
@@ -514,14 +493,12 @@
     </div>
 
     <div class="game-arena" id="gameArena">
-        <!-- الطاولة المركزية -->
         <div class="table-center" id="tableCenter" style="display:none;">
             <div class="target-label">▲ الورقة المطلوبة ▲</div>
             <div id="targetCard"></div>
             <div class="stack-counter" id="stackCount">🃏 أوراق على الطاولة: 0</div>
         </div>
 
-        <!-- اللوبي -->
         <div id="lobbyInfo" style="text-align:center;">
             <div class="lobby-hint">في انتظار اللاعبين...</div>
             <div class="lobby-count" id="lobbyCount">0</div>
@@ -539,7 +516,6 @@
     <button id="startBtn" class="start-btn" onclick="startGame()">🎲 بدء اللعب</button>
 
     <script type="module">
-        // زر البدء يرسل أمر للهوست في player.html
         import { getDatabase, ref, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 
@@ -549,7 +525,6 @@
         const pin = new URLSearchParams(window.location.search).get('pin');
 
         window.startGame = function() {
-            // يُرسل أمر للـ host player عبر Firebase ليبدأ اللعبة
             update(ref(db2, `liars_rooms/${pin}/hostCommands`), { startMatch: Date.now() });
         };
     </script>
