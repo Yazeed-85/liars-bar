@@ -147,41 +147,55 @@
         import { getDatabase, ref, set, onValue, update, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         // =============================================
-        // الأصوات — فك الحظر داخلياً عند أول نقرة
+        // الأصوات — نظام موحد يعمل على iOS/Safari
         // =============================================
-        const audioElements = {};
         const audioFiles = [
             '1A.mp3', '2A.mp3', '3A.mp3', '4A.mp3',
             '1K.mp3', '2K.mp3', '3K.mp3', '4K.mp3',
             '1Q.mp3', '2Q.mp3', '3Q.mp3', '4Q.mp3',
-            'kill.mp3', 'safe.mp3'   // ← تأكد أن الملف اسمه safe.mp3 (بدون شرطة)
+            'kill.mp3', 'safe.mp3'
         ];
+
+        // نبني كل عنصر صوت مرة واحدة — بدون تشغيل مسبق
+        const audioElements = {};
         audioFiles.forEach(file => {
             const a = new Audio(`sounds/${file}`);
             a.preload = 'auto';
             audioElements[file] = a;
         });
 
-        // فك حظر المتصفح بصمت عند أول تفاعل — بدون أي شاشة للمستخدم
+        // فك حظر iOS/Safari باستخدام AudioContext الصامت (بدون تشغيل أي ملف)
         let audioUnlocked = false;
         function tryUnlockAudio() {
             if (audioUnlocked) return;
             audioUnlocked = true;
-            Object.values(audioElements).forEach(a => {
-                a.volume = 0;
-                a.play().then(() => { a.pause(); a.currentTime = 0; a.volume = 1; }).catch(() => {});
-            });
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const buf = ctx.createBuffer(1, 1, 22050);
+                const src = ctx.createBufferSource();
+                src.buffer = buf;
+                src.connect(ctx.destination);
+                src.start(0);
+                ctx.resume().catch(() => {});
+            } catch(e) {}
         }
-        document.addEventListener('click',      tryUnlockAudio, { once: true });
-        document.addEventListener('touchend',   tryUnlockAudio, { once: true });
+        document.addEventListener('click',    tryUnlockAudio, { once: true });
+        document.addEventListener('touchend', tryUnlockAudio, { once: true });
 
-        // تشغيل صوت مع إيقاف أي صوت سابق لمنع التراكب
+        // تشغيل صوت — يوقف الصوت الحالي أولاً ثم يشغّل المطلوب فقط
+        let currentAudio = null;
         window.playSfx = function(filename) {
-            Object.values(audioElements).forEach(a => { a.pause(); a.currentTime = 0; });
-            if (audioElements[filename]) {
-                audioElements[filename].volume = 1;
-                audioElements[filename].play().catch(() => {});
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
             }
+            const a = audioElements[filename];
+            if (!a) return;
+            a.currentTime = 0;
+            a.volume = 1;
+            a.play().catch(() => {});
+            currentAudio = a;
         };
 
         // =============================================
