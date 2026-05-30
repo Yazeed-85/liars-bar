@@ -29,7 +29,6 @@
             position: relative;
         }
 
-        /* خلفية سينمائية */
         body::before {
             content: '';
             position: fixed; inset: 0;
@@ -39,7 +38,6 @@
             pointer-events: none;
         }
 
-        /* نجوم خلفية */
         .stars {
             position: fixed; inset: 0;
             background-image:
@@ -73,9 +71,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .logo-area {
-            margin-bottom: 30px;
-        }
+        .logo-area { margin-bottom: 30px; }
 
         .skull-icon {
             font-size: 3rem;
@@ -107,11 +103,7 @@
             letter-spacing: 1px;
         }
 
-        /* --- حقول الإدخال --- */
-        .input-group {
-            position: relative;
-            margin-bottom: 14px;
-        }
+        .input-group { position: relative; margin-bottom: 14px; }
 
         .input-label {
             display: block;
@@ -144,7 +136,6 @@
         input[type=number]::-webkit-outer-spin-button,
         input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 
-        /* --- الأزرار --- */
         .btn {
             display: block;
             width: 100%;
@@ -204,13 +195,8 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
         }
 
-        .divider span {
-            color: rgba(255,255,255,0.2);
-            font-size: 0.75rem;
-            white-space: nowrap;
-        }
+        .divider span { color: rgba(255,255,255,0.2); font-size: 0.75rem; white-space: nowrap; }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -290,7 +276,6 @@
             window.location.href = `player.html?pin=${pin}&name=${encodeURIComponent(name)}`;
         }
 
-        // دعم Enter
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const pin = document.getElementById('pinInput').value.trim();
