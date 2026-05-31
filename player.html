@@ -14,7 +14,6 @@
             touch-action: manipulation;
         }
 
-        /* --- الشريط العلوي --- */
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.9); border-bottom: 2px solid #451a03; height: 85px; flex-shrink: 0; z-index: 20; padding-top: env(safe-area-inset-top, 10px); }
         .room-pin { font-family: monospace; color: #888; font-size: 1.1rem; background: #111; padding: 5px 10px; border-radius: 8px; border: 1px solid #333; cursor: pointer; }
         .room-pin:active { color: #fff; border-color: #f59e0b; }
@@ -28,13 +27,11 @@
         .target-img-container img { width: 100%; height: 100%; object-fit: contain; border-radius: 3px; animation: glowTarget 1.5s infinite alternate; border: 1px solid #fff; }
         @keyframes glowTarget { from { filter: drop-shadow(0 0 2px #f59e0b); } to { filter: drop-shadow(0 0 8px #f59e0b); transform: scale(1.05); } }
 
-        /* --- الساحة الوسطى --- */
         .arena { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; width: 100%; padding: 20px; }
         .table { width: 60vmin; height: 60vmin; max-width: 400px; max-height: 400px; background: radial-gradient(circle, #065f46 0%, #022c22 100%); border-radius: 50%; border: 12px solid #451a03; box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.7); position: relative; display: flex; justify-content: center; align-items: center; z-index: 1; }
         .discard-pile { position: absolute; width: 60px; height: 85px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .thrown-card { position: absolute; width: 60px; height: 85px; background-image: url('https://deckofcardsapi.com/static/img/back.png'); background-size: contain; background-repeat: no-repeat; background-position: center; border-radius: 4px; box-shadow: 2px 2px 8px rgba(0,0,0,0.8); top: 0; left: 0; }
 
-        /* مقاعد اللاعبين */
         .player-seat { position: absolute; width: 90px; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); z-index: 10; }
         .avatar-container { position: relative; width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; }
         .avatar { width: 100%; height: 100%; background: #1f2937; border-radius: 50%; border: 3px solid #4b5563; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 2; transition: all 0.3s; }
@@ -48,7 +45,6 @@
         .dead .p-name { text-decoration: line-through; color: #666; }
         .flying-card-anim { position: absolute; width: 60px; height: 85px; border-radius: 4px; z-index: 100; transition: all 0.4s ease-out; box-shadow: 0 15px 30px rgba(0,0,0,0.8); }
 
-        /* --- القسم السفلي --- */
         .bottom-area { background: #110808; border-top: 2px solid #333; display: flex; flex-direction: column; align-items: center; padding-top: 15px; z-index: 20; height: 210px; flex-shrink: 0; position: relative; padding-bottom: env(safe-area-inset-bottom, 10px); }
         .controls { display: flex; gap: 15px; margin-bottom: 10px; width: 90%; max-width: 500px; }
         .btn { flex: 1; padding: 12px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
@@ -67,7 +63,6 @@
         .spectator-mode h2 { color: #ef4444; font-size: 2rem; margin: 0; text-shadow: 0 0 15px #000; }
         .spectator-mode p { color: #aaa; font-size: 1rem; margin-top: 5px; }
 
-        /* --- شاشات التراكب --- */
         .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(5,5,5,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; backdrop-filter: blur(5px); }
 
         .lobby-box { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #333; width: 90%; max-width: 600px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
@@ -88,14 +83,12 @@
         .truth-glow img { box-shadow: 0 0 40px #10b981; border: 3px solid #10b981; }
         .liar-glow img { box-shadow: 0 0 40px #dc2626; border: 3px solid #dc2626; }
 
-        /* السلاح والروليت */
         .gun-big { font-size: 5rem; animation: gunShake 0.3s infinite; }
         @keyframes gunShake {
             0%, 100% { transform: rotate(-5deg); }
             50% { transform: rotate(5deg); }
         }
 
-        /* نتيجة الطلقة */
         .shot-result-box { text-align: center; animation: resultAppear 0.4s ease-out; }
         @keyframes resultAppear { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -115,9 +108,47 @@
             border: 2px solid #000;
             z-index: 5;
         }
+
+        /* شاشة تفعيل الصوت */
+        #audioUnlockScreen {
+            position: fixed; inset: 0;
+            background: rgba(5,5,5,0.97);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            text-align: center;
+            padding: 30px;
+        }
+        #audioUnlockScreen h2 { font-size: 2rem; color: #f59e0b; }
+        #audioUnlockScreen p { color: #aaa; font-size: 1rem; }
+        #audioUnlockBtn {
+            padding: 18px 50px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #dc2626, #7f1d1d);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            border-bottom: 4px solid #450a0a;
+            box-shadow: 0 6px 25px rgba(220,38,38,0.5);
+            font-family: inherit;
+        }
+        #audioUnlockBtn:active { transform: scale(0.96); }
     </style>
 </head>
 <body>
+
+    <!-- شاشة تفعيل الصوت — مطلوبة في iOS/Safari -->
+    <div id="audioUnlockScreen">
+        <div style="font-size:4rem">🔫</div>
+        <h2>LIAR'S BAR</h2>
+        <p>اضغط للدخول وتفعيل الصوت</p>
+        <button id="audioUnlockBtn" onclick="unlockAndEnter()">▶ دخول اللعبة</button>
+    </div>
 
     <div class="top-bar">
         <div class="room-pin" id="pinDisplay" onclick="copyPin()">----</div>
@@ -147,41 +178,59 @@
         import { getDatabase, ref, set, onValue, update, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         // =============================================
-        // الأصوات — فك الحظر داخلياً عند أول نقرة
+        // الأصوات — نظام موحد لجميع المتصفحات بما فيها iOS/Safari
         // =============================================
-        const audioElements = {};
+        // نبني عناصر Audio مسبقاً لكن لا نشغلها أبداً قبل تفاعل المستخدم
         const audioFiles = [
             '1A.mp3', '2A.mp3', '3A.mp3', '4A.mp3',
             '1K.mp3', '2K.mp3', '3K.mp3', '4K.mp3',
             '1Q.mp3', '2Q.mp3', '3Q.mp3', '4Q.mp3',
-            'kill.mp3', 'safe.mp3'   // ← تأكد أن الملف اسمه safe.mp3 (بدون شرطة)
+            'kill.mp3', 'safe.mp3'
         ];
+        const audioElements = {};
         audioFiles.forEach(file => {
             const a = new Audio(`sounds/${file}`);
             a.preload = 'auto';
             audioElements[file] = a;
         });
 
-        // فك حظر المتصفح بصمت عند أول تفاعل — بدون أي شاشة للمستخدم
-        let audioUnlocked = false;
-        function tryUnlockAudio() {
-            if (audioUnlocked) return;
-            audioUnlocked = true;
-            Object.values(audioElements).forEach(a => {
-                a.volume = 0;
-                a.play().then(() => { a.pause(); a.currentTime = 0; a.volume = 1; }).catch(() => {});
-            });
-        }
-        document.addEventListener('click',      tryUnlockAudio, { once: true });
-        document.addEventListener('touchend',   tryUnlockAudio, { once: true });
+        let audioReady = false;
+        let currentAudio = null;
 
-        // تشغيل صوت مع إيقاف أي صوت سابق لمنع التراكب
+        // يُستدعى من زر الدخول — يفعّل الصوت بضغطة المستخدم المباشرة
+        window.unlockAndEnter = async function() {
+            const btn = document.getElementById('audioUnlockBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ جاري التحميل...';
+
+            // نشغّل صوتاً واحداً فقط بصوت صفر لفتح سياق الصوت في iOS
+            try {
+                const a = audioElements['kill.mp3'];
+                a.volume = 0;
+                await a.play();
+                a.pause();
+                a.currentTime = 0;
+                a.volume = 1;
+            } catch(e) {}
+
+            audioReady = true;
+            document.getElementById('audioUnlockScreen').style.display = 'none';
+        };
+
+        // تشغيل صوت — يوقف أي صوت حالي أولاً
         window.playSfx = function(filename) {
-            Object.values(audioElements).forEach(a => { a.pause(); a.currentTime = 0; });
-            if (audioElements[filename]) {
-                audioElements[filename].volume = 1;
-                audioElements[filename].play().catch(() => {});
+            if (!audioReady) return;
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
             }
+            const a = audioElements[filename];
+            if (!a) return;
+            a.currentTime = 0;
+            a.volume = 1;
+            a.play().catch(() => {});
+            currentAudio = a;
         };
 
         // =============================================
@@ -196,6 +245,7 @@
         let myName = urlParams.get('name');
         const isHost = urlParams.get('role') === 'host';
 
+        // مفتاح تخزين فريد لكل غرفة — يضمن هوية ثابتة عند إعادة فتح الصفحة
         const storageKey = `liars_v21_${pin}_myId`;
         let myId = localStorage.getItem(storageKey);
         if (!myId) { myId = "p_" + Date.now(); localStorage.setItem(storageKey, myId); }
@@ -220,10 +270,14 @@
         let myHand = [];
         let selectedIndices = [];
 
-        // تسجيل اللاعب
-        get(myPlayerRef).then((snap) => {
+        // =============================================
+        // تسجيل اللاعب — مضمون يظهر فوراً للجميع
+        // =============================================
+        async function registerPlayer() {
+            const snap = await get(myPlayerRef);
             if (!snap.exists()) {
-                set(myPlayerRef, {
+                // لاعب جديد — اكتب بياناته مباشرة
+                await set(myPlayerRef, {
                     name: myName,
                     isAlive: true,
                     hand: [],
@@ -231,44 +285,49 @@
                     currentChamber: 0
                 });
             } else {
+                // لاعب عائد — حدّث اسمه فقط إذا احتجنا
                 if (snap.val().name) myName = snap.val().name;
             }
-        });
+            // بعد ضمان وجود البيانات ابدأ الاستماع
+            startListeners();
+        }
 
-        onValue(playersRef, (snap) => {
-            players = snap.val() || {};
-            const newHand = players[myId]?.hand || [];
-            if (JSON.stringify(newHand) !== JSON.stringify(myHand)) {
-                myHand = newHand;
-                selectedIndices = [];
-            }
-            renderTable(); renderHand(); renderUI();
-        });
+        function startListeners() {
+            onValue(playersRef, (snap) => {
+                players = snap.val() || {};
+                const newHand = players[myId]?.hand || [];
+                if (JSON.stringify(newHand) !== JSON.stringify(myHand)) {
+                    myHand = newHand;
+                    selectedIndices = [];
+                }
+                renderTable(); renderHand(); renderUI();
+            });
 
-        onValue(stateRef, (snap) => {
-            gameState = snap.val() || { status: 'lobby', tableStack: [] };
-            renderTable(); renderUI(); renderPile();
-        });
+            onValue(stateRef, (snap) => {
+                gameState = snap.val() || { status: 'lobby', tableStack: [] };
+                renderTable(); renderUI(); renderPile();
+            });
 
-        // =============================================
-        // مستمع الأحداث — مدمج في واحد (كان مزدوجاً)
-        // =============================================
-        onChildAdded(eventsRef, (snap) => {
-            const ev = snap.val();
-            const now = Date.now();
-            if (!ev || !ev.time) return;
+            // مستمع الأحداث (رمي الأوراق + صوت الطلقة)
+            onChildAdded(eventsRef, (snap) => {
+                const ev = snap.val();
+                const now = Date.now();
+                if (!ev || !ev.time) return;
 
-            if (ev.type === 'throw') {
-                if (now - ev.time > 4000) return;
-                animateThrow(ev.playerId, ev.count);
-                playSfx(`${Math.min(ev.count, 4)}${ev.target}.mp3`);
-            }
-            else if (ev.type === 'shoot_sound') {
-                // نتجاهل الأصوات القديمة (إذا تم تحميل الصفحة أثناء الروليت)
-                if (now - ev.time > 3000) return;
-                playSfx(ev.died ? 'kill.mp3' : 'safe.mp3');
-            }
-        });
+                if (ev.type === 'throw') {
+                    if (now - ev.time > 4000) return;
+                    animateThrow(ev.playerId, ev.count);
+                    playSfx(`${Math.min(ev.count, 4)}${ev.target}.mp3`);
+                }
+                else if (ev.type === 'shoot_sound') {
+                    if (now - ev.time > 3000) return;
+                    playSfx(ev.died ? 'kill.mp3' : 'safe.mp3');
+                }
+            });
+        }
+
+        // ابدأ التسجيل فوراً عند تحميل الصفحة
+        registerPlayer();
 
         // =============================================
         // منطق توزيع الأوراق
@@ -299,18 +358,15 @@
             let hands = {};
             aliveIds.forEach(id => { hands[id] = []; });
 
-            // ضمان ورقة مستهدفة واحدة لكل لاعب
             shuffle([...aliveIds]).forEach(id => {
                 if (targetCards.length > 0) hands[id].push(targetCards.pop());
             });
 
-            // جوكر: لاعبان عشوائيان يحصلان عليه
             const jokerRecipients = shuffle([...aliveIds]).slice(0, 2);
             jokerRecipients.forEach((id, idx) => {
                 if (hands[id].length < HAND_SIZE) hands[id].push(['J', 'J'][idx]);
             });
 
-            // تعبئة بقية الأوراق
             let fillPool = shuffle([...targetCards, ...otherCards]);
             aliveIds.forEach(id => {
                 while (hands[id].length < HAND_SIZE && fillPool.length > 0)
@@ -371,11 +427,7 @@
                                         .filter(id => currentPlayers[id]?.isAlive);
 
                 try {
-                    // -------------------------------------------------------
-                    // رمي الأوراق
-                    // -------------------------------------------------------
                     if (action.type === 'play') {
-                        // حارس: فقط في وضع اللعب
                         if (currentGS.status !== 'playing') {
                             remove(ref(db, `${rootRef}/actions/${key}`));
                             return;
@@ -408,7 +460,6 @@
                             lastPlay: newLastPlay
                         });
 
-                        // إعادة التوزيع إذا انتهت أوراق الجميع
                         if (action.handLeft === 0) {
                             const allEmpty = aliveIds.every(id =>
                                 id === action.playerId || (currentPlayers[id]?.hand || []).length === 0
@@ -429,11 +480,7 @@
                         }
                     }
 
-                    // -------------------------------------------------------
-                    // اتهام بالكذب → الروليت تلقائياً بالكامل
-                    // -------------------------------------------------------
                     else if (action.type === 'liar') {
-                        // حارس: فقط في وضع اللعب وعندما يوجد آخر لعبة
                         if (currentGS.status !== 'playing') {
                             remove(ref(db, `${rootRef}/actions/${key}`));
                             return;
@@ -444,13 +491,11 @@
                             return;
                         }
 
-                        // هل هو كاذب؟
                         let isLiar = (lastMove.cards || []).some(
                             card => card !== currentGS.targetCard && card !== 'J'
                         );
                         const victimId = isLiar ? lastMove.playerId : action.playerId;
 
-                        // === 1) شاشة الكشف ===
                         await update(stateRef, {
                             status:        'reveal',
                             revealedCards: lastMove.cards,
@@ -464,25 +509,20 @@
                                 : `صادق! ${currentPlayers[action.playerId]?.name} تسرّع! 😱`
                         });
 
-                        // === 2) بعد 3.5 ثانية → روليت تلقائي ===
                         setTimeout(async () => {
-                            // جلب بيانات الضحية المحدّثة
                             const freshPS     = await get(playersRef);
                             const freshPlayers = freshPS.val() || {};
                             const victim = freshPlayers[victimId];
                             if (!victim) return;
 
-                            // السيرفر يقرر هل تخرج الرصاصة أم لا
                             const died = (victim.currentChamber === victim.bulletIndex);
 
-                            // تحديث الحالة إلى روليت
                             await update(stateRef, {
                                 status:     'roulette',
                                 victimId:   victimId,
                                 victimName: victim.name
                             });
 
-                            // === 3) بث حدث الصوت لجميع اللاعبين فوراً ===
                             const soundEvRef = push(eventsRef, {
                                 type:       'shoot_sound',
                                 died:       died,
@@ -490,10 +530,8 @@
                                 victimName: victim.name,
                                 time:       Date.now()
                             });
-                            // نزيل الحدث بعد 3 ثوانٍ — كافٍ للتشغيل، يمنع إعادته عند تحميل الصفحة
                             setTimeout(() => remove(soundEvRef), 3000);
 
-                            // === 4) بعد 7 ثوانٍ بالضبط (نهاية الصوت) → عرض النتيجة ===
                             setTimeout(async () => {
                                 await update(stateRef, {
                                     status:     'shot_result',
@@ -502,11 +540,9 @@
                                     victimId:   victimId
                                 });
 
-                                // === 5) بعد ثانيتين → متابعة اللعبة ===
                                 setTimeout(async () => {
                                     if (died) {
                                         await update(ref(db, `${rootRef}/players/${victimId}`), { isAlive: false });
-                                        // إعادة جلب اللاعبين للتأكد من البيانات الصحيحة
                                         const snapAfter   = await get(playersRef);
                                         const afterPlayers = snapAfter.val() || {};
                                         const survivors   = Object.keys(afterPlayers).filter(id => afterPlayers[id]?.isAlive);
@@ -525,9 +561,6 @@
                             }, 7000);
                         }, 3500);
                     }
-
-                    // ملاحظة: حذفنا معالج 'shoot' — الروليت الآن تلقائي 100% من السيرفر
-                    // لا يوجد زر للضحية ولا حاجة لأي تفاعل من اللاعب
 
                 } catch(e) { console.error("Host action error:", e); }
                 remove(ref(db, `${rootRef}/actions/${key}`));
@@ -664,8 +697,6 @@
                     </div>`;
             }
             else if (gameState.status === 'roulette') {
-                // الجميع يرى نفس الشاشة — لا يوجد زر لأحد
-                // الصوت يُشغَّل تلقائياً عبر حدث shoot_sound في eventsRef
                 overlay.style.display = 'flex';
                 overlay.innerHTML = `
                     <div class="result-box" style="text-align:center; border-color:#dc2626;">
@@ -677,7 +708,6 @@
                     </div>`;
             }
             else if (gameState.status === 'shot_result') {
-                // يظهر لمدة ثانيتين بالضبط ثم يختفي (التايمر في الهوست)
                 overlay.style.display = 'flex';
                 if (gameState.died) {
                     overlay.innerHTML = `
@@ -767,6 +797,7 @@
                     card.style.backgroundRepeat   = 'no-repeat';
                     card.style.backgroundPosition = 'center';
                     card.className = 'flying-card-anim';
+                    card.style.position = 'fixed';
                     card.style.left = `${startRect.left + 10}px`;
                     card.style.top  = `${startRect.top  + 10}px`;
                     document.body.appendChild(card);
