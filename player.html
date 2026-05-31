@@ -178,59 +178,66 @@
         import { getDatabase, ref, set, onValue, update, push, get, remove, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         // =============================================
-        // الأصوات — نظام موحد لجميع المتصفحات بما فيها iOS/Safari
+        // الأصوات — AudioContext + fetch
+        // الوحيد المضمون في iOS للأصوات المتأخرة (kill/safe تأتي بعد 7 ثوانٍ)
         // =============================================
-        // نبني عناصر Audio مسبقاً لكن لا نشغلها أبداً قبل تفاعل المستخدم
-        const audioFiles = [
+        const AUDIO_FILES = [
             '1A.mp3', '2A.mp3', '3A.mp3', '4A.mp3',
             '1K.mp3', '2K.mp3', '3K.mp3', '4K.mp3',
             '1Q.mp3', '2Q.mp3', '3Q.mp3', '4Q.mp3',
             'kill.mp3', 'safe.mp3'
         ];
-        const audioElements = {};
-        audioFiles.forEach(file => {
-            const a = new Audio(`sounds/${file}`);
-            a.preload = 'auto';
-            audioElements[file] = a;
-        });
 
-        let audioReady = false;
-        let currentAudio = null;
+        let actx = null;          // AudioContext — يُنشأ فقط داخل حدث المستخدم
+        const audioBuffers = {};  // اسم الملف → AudioBuffer محمّل مسبقاً
+        let currentSource = null; // المصدر الحالي لإيقافه عند الحاجة
 
-        // يُستدعى من زر الدخول — يفعّل الصوت بضغطة المستخدم المباشرة
+        // تحميل ملف واحد كـ ArrayBuffer ثم فكّ ترميزه
+        async function loadBuffer(file) {
+            try {
+                const res = await fetch(`sounds/${file}`);
+                const arr = await res.arrayBuffer();
+                audioBuffers[file] = await actx.decodeAudioData(arr);
+            } catch(e) { console.warn('audio load failed:', file, e); }
+        }
+
+        // يُستدعى من زر الدخول مباشرةً (شرط iOS)
         window.unlockAndEnter = async function() {
             const btn = document.getElementById('audioUnlockBtn');
             btn.disabled = true;
             btn.textContent = '⏳ جاري التحميل...';
 
-            // نشغّل صوتاً واحداً فقط بصوت صفر لفتح سياق الصوت في iOS
-            try {
-                const a = audioElements['kill.mp3'];
-                a.volume = 0;
-                await a.play();
-                a.pause();
-                a.currentTime = 0;
-                a.volume = 1;
-            } catch(e) {}
+            // 1) أنشئ AudioContext داخل حدث المستخدم — هذا يفتح سياق الصوت في iOS
+            actx = new (window.AudioContext || window.webkitAudioContext)();
 
-            audioReady = true;
+            // 2) شغّل نبضة صامتة لضمان فتح السياق تماماً
+            const silence = actx.createBuffer(1, 1, 22050);
+            const src = actx.createBufferSource();
+            src.buffer = silence;
+            src.connect(actx.destination);
+            src.start(0);
+
+            // 3) حمّل جميع الأصوات كـ buffers (يحدث في الخلفية)
+            await Promise.all(AUDIO_FILES.map(f => loadBuffer(f)));
+
             document.getElementById('audioUnlockScreen').style.display = 'none';
         };
 
-        // تشغيل صوت — يوقف أي صوت حالي أولاً
+        // تشغيل صوت عبر AudioContext — يعمل في أي وقت بعد فتح السياق
         window.playSfx = function(filename) {
-            if (!audioReady) return;
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
+            if (!actx || !audioBuffers[filename]) return;
+
+            // أوقف الصوت الحالي إذا كان يعمل
+            if (currentSource) {
+                try { currentSource.stop(); } catch(e) {}
+                currentSource = null;
             }
-            const a = audioElements[filename];
-            if (!a) return;
-            a.currentTime = 0;
-            a.volume = 1;
-            a.play().catch(() => {});
-            currentAudio = a;
+
+            const src = actx.createBufferSource();
+            src.buffer = audioBuffers[filename];
+            src.connect(actx.destination);
+            src.start(0);
+            currentSource = src;
         };
 
         // =============================================
